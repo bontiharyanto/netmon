@@ -59,6 +59,17 @@ export const id = {
     dbDown: "Database tidak terjangkau. Nyalakan Postgres, lalu coba lagi.",
     idleExpired: "Sesi berakhir karena tidak ada aktivitas. Masuk lagi.",
   },
+  account: {
+    title: "Akun",
+    subtitle: "Profil masuk Anda. Ganti kata sandi seed setelah login pertama.",
+    current: "Kata sandi saat ini",
+    next: "Kata sandi baru",
+    confirm: "Ulangi kata sandi baru",
+    change: "Perbarui kata sandi",
+    changed: "Kata sandi diperbarui",
+    mismatch: "Kata sandi baru tidak sama.",
+    failed: "Tidak dapat memperbarui kata sandi.",
+  },
   search: {
     placeholder: "Cari perangkat, alert, modul… ⌘K",
   },

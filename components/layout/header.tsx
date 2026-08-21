@@ -34,8 +34,16 @@ export function Header({
         <LocaleToggle />
         <ThemeToggle />
         <NotificationBell />
-        <span className="hidden text-xs text-muted-foreground sm:inline">{email}</span>
+        <Link
+          href={role === "viewer" ? "/portal/account" : "/dashboard/account"}
+          className="hidden text-xs text-muted-foreground hover:text-foreground sm:inline"
+        >
+          {email}
+        </Link>
         <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] uppercase">{role}</span>
+        <Button variant="outline" size="sm" asChild>
+          <Link href={role === "viewer" ? "/portal/account" : "/dashboard/account"}>{t.account.title}</Link>
+        </Button>
         <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: "/login" })}>
           {t.common.signOut}
         </Button>

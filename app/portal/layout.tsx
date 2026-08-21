@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { LocaleToggle } from "@/components/layout/locale-toggle";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { PortalNav } from "@/components/layout/portal-nav";
+import { PortalAccountLinks } from "@/components/layout/portal-account-links";
 import { IdleSessionGuard } from "@/components/layout/idle-session-guard";
 import { getAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -31,6 +32,7 @@ export default async function PortalLayout({ children }: { children: React.React
             <LocaleToggle />
             <NotificationBell />
             <ThemeToggle />
+            <PortalAccountLinks email={session.user.email} />
           </div>
         </div>
         <div className="px-4 pb-3">

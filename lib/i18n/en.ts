@@ -59,6 +59,17 @@ export const en = {
     dbDown: "Database is unreachable. Start Postgres, then try again.",
     idleExpired: "Signed out after inactivity. Sign in again.",
   },
+  account: {
+    title: "Account",
+    subtitle: "Your sign-in profile. Change the seed password after first login.",
+    current: "Current password",
+    next: "New password",
+    confirm: "Confirm new password",
+    change: "Update password",
+    changed: "Password updated",
+    mismatch: "New passwords do not match.",
+    failed: "Unable to update password.",
+  },
   search: {
     placeholder: "Search devices, alerts, modules… ⌘K",
   },
