@@ -3,6 +3,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { authenticator } from "otplib";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import {
+  DEFAULT_PASSWORD_DAYS,
+  daysUntilPasswordExpiry,
+  isPasswordExpired,
+  parsePasswordDays,
+} from "@/lib/password-policy";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -66,15 +72,20 @@ export const authOptions: NextAuthOptions = {
         const live = email
           ? await prisma.user.findUnique({
               where: { email },
-              include: { tenant: { select: { slug: true, status: true } } },
+              include: { tenant: { select: { slug: true, status: true, password_days: true } } },
             })
           : null;
 
         if (live?.tenant.status === "active") {
+          const passwordDays = parsePasswordDays(live.tenant.password_days);
           token.sub = live.id;
           token.role = live.role;
           token.tenantId = live.tenant_id;
           token.tenantSlug = live.tenant.slug;
+          token.passwordChangedAt = live.password_changed_at.toISOString();
+          token.passwordDays = passwordDays;
+          token.passwordExpired = isPasswordExpired(live.password_changed_at, passwordDays);
+          token.passwordDaysLeft = daysUntilPasswordExpiry(live.password_changed_at, passwordDays);
         }
       } catch {
         // Keep the existing JWT if Postgres is briefly unreachable.
@@ -88,6 +99,9 @@ export const authOptions: NextAuthOptions = {
         session.user.role = (token.role as string) ?? "viewer";
         session.user.tenantId = (token.tenantId as string) ?? "";
         session.user.tenantSlug = (token.tenantSlug as string) ?? "";
+        session.user.passwordExpired = Boolean(token.passwordExpired);
+        session.user.passwordDaysLeft = typeof token.passwordDaysLeft === "number" ? token.passwordDaysLeft : DEFAULT_PASSWORD_DAYS;
+        session.user.passwordDays = parsePasswordDays(token.passwordDays);
       }
       return session;
     },

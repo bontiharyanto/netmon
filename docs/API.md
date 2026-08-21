@@ -25,7 +25,7 @@ Login errors: wrong password vs `OTP_REQUIRED` vs `DATABASE_UNAVAILABLE` (Postgr
 | GET | `/api/cmdb` | cmdb |
 | POST | `/api/import` | import.inventory |
 | POST | `/api/topology/import` | topology.write |
-| GET | `/api/topology/template` | topology.read |
+| GET | `/api/topology/template` | topology.read · `?format=csv\|xlsx\|pdf` filled from live links |
 | GET | `/api/reports` | reports.export |
 
 ## Ticketing
@@ -61,6 +61,10 @@ NovaCRM outbound (server-side, not a public NETMON route):
 | GET/PUT | `/api/ai/settings` |
 | GET/POST | `/api/users` |
 | POST | `/api/security/2fa` · `/api/security/2fa/confirm` |
+| GET/PATCH | `/api/security/session` | Idle timeout + password rotation days |
+| PATCH | `/api/account/password` | Own password; resets 30-day clock |
+| GET | `/api/ops/outage` | Mass-incident ticker payload |
+| PATCH | `/api/ops/outage` | alert.write · custom running text |
 | GET/POST | `/api/agents` |
 | POST | `/api/agent/heartbeat` (token, no session) |
 | GET/POST | `/api/dashboards` |

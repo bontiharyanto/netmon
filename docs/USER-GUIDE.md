@@ -13,7 +13,7 @@ Sign in as admin or operator.
 | Overview | `/dashboard` | KPI cards, live estate |
 | Alerts | `/dashboard/alerts` | Firing / resolved. Open a ticket from a firing alert |
 | Tickets | `/dashboard/tickets` | Inbox for local helpdesk and remote ITSM |
-| Topology | `/dashboard/topology` | Live links; upload CSV / Excel / JSON |
+| Topology | `/dashboard/topology` | Live links; upload CSV / Excel / JSON. Download filled CSV, Excel, or PDF. |
 | SLA | `/dashboard/sla` | 30-day uptime |
 
 ### Assets
@@ -40,13 +40,17 @@ Sign in as admin or operator.
 | --- | --- | --- |
 | Users | `/dashboard/users` | admin+ |
 | Settings | `/dashboard/settings` | Channels, Ticketing, AI |
-| Security | `/dashboard/security` | TOTP 2FA, session idle timeout |
-| Account | `/dashboard/account` | Change own password |
+| Security | `/dashboard/security` | TOTP 2FA, session idle timeout, password rotation (30 days) |
+| Account | `/dashboard/account` | Change own password (required when older than 30 days) |
 | Platform | `/admin` | superadmin only |
 
 Header: global search (`⌘K` / `Ctrl+K`), **EN | ID**, theme, **notification bell**, **Account** (change your own password), portal link, sign out.
 
 Idle timeout is configured on **Security** (Never / 15 / 30 / 60 minutes). No keyboard, click, or scroll signs the session out.
+
+Passwords expire every **30 days** by default (Never / 30 / 60 / 90 on Security). NETMON reminds you 7 days before, then blocks the rest of the app until you set a new password on **Account**.
+
+A **running incident line** appears under the header when there is a mass outage, or when an operator writes a custom message (**Security** → Incident ticker, or **Edit** on the line itself). It links to Alerts. Portal viewers see the same line.
 
 Change the seed password on first login (**Account**). Superadmin on production is `admin@netmon.click`.
 
@@ -60,7 +64,7 @@ Viewers on `/portal` can see tickets but cannot reply. Full connector notes: [TI
 
 ## Customer portal (`/portal`)
 
-Login as `viewer`. Read-only: Overview, Assets, CMDB, Topology, Tickets, Knowledge, AI.
+Login as `viewer`. Read-only: Overview, Assets, CMDB, Topology, Tickets, Knowledge, AI. The same mass-incident ticker appears here. Password rotation still applies.
 
 Public status (no login): `/status/{tenant-slug}`.
 

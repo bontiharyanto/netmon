@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useI18n } from "@/components/layout/locale-provider";
 
 export function TopologyUpload() {
+  const { t } = useI18n();
   const router = useRouter();
   const [result, setResult] = useState("");
   const [pending, setPending] = useState(false);
@@ -24,15 +26,15 @@ export function TopologyUpload() {
       const text = await res.text();
       const json = text ? JSON.parse(text) : {};
       if (!res.ok) {
-        toast.error(json.error ?? "Topology import failed");
+        toast.error(json.error ?? t.topology.uploadFailed);
         return;
       }
-      const extra = json.missing?.length ? ` Missing: ${json.missing.join(", ")}` : "";
-      setResult(`${json.imported} links saved · ${json.skipped} skipped.${extra}`);
-      toast.success("Topology uploaded");
+      const extra = json.missing?.length ? ` ${t.topology.missing}: ${json.missing.join(", ")}` : "";
+      setResult(`${json.imported} ${t.topology.saved} · ${json.skipped} ${t.topology.skipped}.${extra}`);
+      toast.success(t.topology.uploaded);
       router.refresh();
     } catch {
-      toast.error("Topology import failed");
+      toast.error(t.topology.uploadFailed);
     } finally {
       setPending(false);
     }
@@ -41,28 +43,36 @@ export function TopologyUpload() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Upload network topology</CardTitle>
-        <CardDescription>
-          CSV, Excel, or JSON. Columns: <span className="font-mono">from</span>, <span className="font-mono">to</span>,{" "}
-          <span className="font-mono">status</span>. Endpoints must match existing hostnames or IPs.
-        </CardDescription>
+        <CardTitle>{t.topology.uploadTitle}</CardTitle>
+        <CardDescription>{t.topology.uploadHint}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
           <input name="file" type="file" accept=".csv,.xlsx,.xls,.json" required className="block text-sm" />
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <input type="checkbox" name="replace" className="accent-primary" />
-            Replace all existing links
+            {t.topology.replace}
           </label>
           <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={pending}>
-              {pending ? "Uploading…" : "Upload topology"}
-            </Button>
-            <Button type="button" variant="outline" asChild>
-              <a href="/api/topology/template">Download template</a>
+              {pending ? t.topology.uploading : t.topology.upload}
             </Button>
           </div>
         </form>
+        <div className="mt-4 space-y-2">
+          <p className="text-xs text-muted-foreground">{t.topology.downloadHint}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href="/api/topology/template?format=csv">{t.topology.csv}</a>
+            </Button>
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href="/api/topology/template?format=xlsx">{t.topology.excel}</a>
+            </Button>
+            <Button type="button" variant="outline" size="sm" asChild>
+              <a href="/api/topology/template?format=pdf">{t.topology.pdf}</a>
+            </Button>
+          </div>
+        </div>
         {result && <p className="mt-4 text-sm text-muted-foreground">{result}</p>}
       </CardContent>
     </Card>

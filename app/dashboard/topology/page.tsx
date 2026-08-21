@@ -21,7 +21,7 @@ export default async function TopologyPage() {
       <div>
         <h1 className="text-2xl font-semibold">Topology</h1>
         <p className="text-sm text-muted-foreground">
-          Live map of device links. Upload CSV, Excel, or JSON to build the graph.
+          Live map of device links. Upload CSV, Excel, or JSON. Download a filled CSV, Excel, or PDF of the current table.
         </p>
       </div>
       {canUpload && <TopologyUpload />}

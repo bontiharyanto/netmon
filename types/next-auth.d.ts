@@ -7,6 +7,9 @@ declare module "next-auth" {
       role: string;
       tenantId: string;
       tenantSlug: string;
+      passwordExpired: boolean;
+      passwordDaysLeft: number;
+      passwordDays: number;
     };
   }
 
@@ -22,5 +25,9 @@ declare module "next-auth/jwt" {
     role?: string;
     tenantId?: string;
     tenantSlug?: string;
+    passwordChangedAt?: string;
+    passwordDays?: number;
+    passwordExpired?: boolean;
+    passwordDaysLeft?: number;
   }
 }

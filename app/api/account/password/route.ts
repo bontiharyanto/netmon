@@ -33,7 +33,10 @@ export async function PATCH(req: Request) {
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { password_hash: await bcrypt.hash(parsed.data.next, 10) },
+    data: {
+      password_hash: await bcrypt.hash(parsed.data.next, 10),
+      password_changed_at: new Date(),
+    },
   });
   await writeAudit(session.user.tenantId, session.user.id, "user.password");
   return NextResponse.json({ ok: true });

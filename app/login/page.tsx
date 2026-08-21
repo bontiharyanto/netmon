@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
+import { accountPath } from "@/lib/password-policy";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
@@ -45,6 +46,11 @@ function LoginForm() {
     }
     if (result?.error) {
       setError(t.login.badCreds);
+      return;
+    }
+    const session = await getSession();
+    if (session?.user.passwordExpired) {
+      router.push(`${accountPath(session.user.role)}?expired=1`);
       return;
     }
     router.push(params.get("callbackUrl") || "/dashboard");

@@ -7,20 +7,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/components/layout/locale-provider";
 import { IDLE_OPTIONS, parseIdleMinutes, type IdleMinutes } from "@/lib/idle";
+import { PASSWORD_DAY_OPTIONS, parsePasswordDays, type PasswordDays } from "@/lib/password-policy";
 import { formatMinutes } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { TickerSettingsCard } from "@/components/layout/ticker-settings-card";
 
 export default function SecurityPage() {
   const { t } = useI18n();
   const [qr, setQr] = useState<string | null>(null);
   const [secret, setSecret] = useState("");
   const [idle, setIdle] = useState<IdleMinutes>(30);
+  const [passwordDays, setPasswordDays] = useState<PasswordDays>(30);
   const [savingIdle, setSavingIdle] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
     fetch("/api/security/session")
       .then((res) => res.json())
-      .then((data) => setIdle(parseIdleMinutes(data.idle_minutes)))
+      .then((data) => {
+        setIdle(parseIdleMinutes(data.idle_minutes));
+        setPasswordDays(parsePasswordDays(data.password_days));
+      })
       .catch(() => undefined);
   }, []);
 
@@ -64,6 +71,22 @@ export default function SecurityPage() {
     toast.success(t.session.saved);
   }
 
+  async function savePasswordDays(days: PasswordDays) {
+    setPasswordDays(days);
+    setSavingPassword(true);
+    const res = await fetch("/api/security/session", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password_days: days }),
+    });
+    setSavingPassword(false);
+    if (!res.ok) {
+      toast.error("Unable to save password policy");
+      return;
+    }
+    toast.success(t.passwordPolicy.saved);
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
@@ -88,6 +111,29 @@ export default function SecurityPage() {
           ))}
         </CardContent>
       </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t.passwordPolicy.title}</CardTitle>
+          <CardDescription>{t.passwordPolicy.subtitle}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 sm:grid-cols-2">
+          {PASSWORD_DAY_OPTIONS.map((days) => (
+            <button
+              key={days}
+              type="button"
+              disabled={savingPassword}
+              onClick={() => savePasswordDays(days)}
+              className={cn(
+                "rounded-lg border px-3 py-2 text-left text-sm",
+                passwordDays === days ? "border-primary/50 bg-primary/10" : "border-border hover:bg-muted/40",
+              )}
+            >
+              {days === 0 ? t.passwordPolicy.never : formatMinutes(t.passwordPolicy.days, days)}
+            </button>
+          ))}
+        </CardContent>
+      </Card>
+      <TickerSettingsCard />
       <Card>
         <CardHeader>
           <CardTitle>{t.security.totpTitle}</CardTitle>

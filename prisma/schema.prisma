@@ -20,6 +20,9 @@ model tenant {
   status            String         @default("active")
   plan              String         @default("cloud_basic")
   idle_minutes      Int            @default(30)
+  password_days     Int            @default(30)
+  ticker_text       String         @default("")
+  ticker_enabled    Boolean        @default(false)
   users             user[]
   kb_articles       kb_article[]
   devices           device[]
@@ -44,11 +47,12 @@ model user {
   name          String?
   password_hash String
   role          String      @default("viewer")
-  totp_secret   String?
-  totp_enabled  Boolean     @default(false)
-  sso_provider  String?
-  created_at    DateTime    @default(now())
-  tenant        tenant         @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  totp_secret          String?
+  totp_enabled         Boolean     @default(false)
+  sso_provider         String?
+  password_changed_at  DateTime    @default(now())
+  created_at           DateTime    @default(now())
+  tenant               tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   audit_logs    audit_log[]
   notifications notification[]
 

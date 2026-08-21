@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { getSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +11,8 @@ import { useI18n } from "@/components/layout/locale-provider";
 
 export function PasswordForm() {
   const { t } = useI18n();
+  const router = useRouter();
+  const params = useSearchParams();
   const [pending, setPending] = useState(false);
 
   async function onSubmit(formData: FormData) {
@@ -31,8 +35,13 @@ export function PasswordForm() {
       toast.error(data.error ?? t.account.failed);
       return;
     }
+    const session = await getSession();
     toast.success(t.account.changed);
     (document.getElementById("password-form") as HTMLFormElement | null)?.reset();
+    if (params.get("expired") === "1") {
+      router.push(session?.user.role === "viewer" ? "/portal" : "/dashboard");
+      router.refresh();
+    }
   }
 
   return (

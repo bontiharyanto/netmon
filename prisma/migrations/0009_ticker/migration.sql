@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "tenant" ADD COLUMN IF NOT EXISTS "ticker_text" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "tenant" ADD COLUMN IF NOT EXISTS "ticker_enabled" BOOLEAN NOT NULL DEFAULT false;

@@ -24,3 +24,10 @@ export function getDictionary(locale?: string | null): Dictionary {
 export function formatMinutes(template: string, n: number) {
   return template.replace("{n}", String(n));
 }
+
+export function formatTemplate(template: string, vars: Record<string, string | number>) {
+  return Object.entries(vars).reduce(
+    (text, [key, value]) => text.split(`{${key}}`).join(String(value)),
+    template,
+  );
+}

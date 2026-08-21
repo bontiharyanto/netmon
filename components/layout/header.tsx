@@ -20,7 +20,7 @@ export function Header({
 }) {
   const { t } = useI18n();
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur">
+    <header className="flex h-14 items-center gap-4 border-b border-border bg-background/80 px-4 backdrop-blur">
       <GlobalSearch />
       <div className="ml-auto flex items-center gap-2">
         <Link href="/portal" className="hidden text-xs text-muted-foreground hover:text-foreground md:inline">
