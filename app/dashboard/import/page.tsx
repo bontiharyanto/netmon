@@ -26,7 +26,13 @@ export default function ImportPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Import CSV / Excel</h1>
-        <p className="text-sm text-muted-foreground">Kolom: hostname, ip, type, location.</p>
+        <p className="text-sm text-muted-foreground">
+          Columns: hostname, ip, type, location. Network maps are uploaded from{" "}
+          <a href="/dashboard/topology" className="text-primary underline-offset-4 hover:underline">
+            Topology
+          </a>
+          .
+        </p>
       </div>
       <Card>
         <CardHeader>

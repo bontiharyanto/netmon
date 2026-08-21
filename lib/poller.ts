@@ -1,5 +1,6 @@
 import net from "net";
 import { prisma } from "@/lib/prisma";
+import { maybeCommentResolvedAlert, maybeOpenTicketsForAlert } from "@/lib/tickets";
 
 function tcpCheck(ip: string, port = 80, timeoutMs = 2500) {
   return new Promise<boolean>((resolve) => {
@@ -59,7 +60,7 @@ export async function pollDevice(deviceId: string) {
       where: { device_id: device.id, event: "device_down", status: "firing" },
     });
     if (!open) {
-      await prisma.alert.create({
+      const alert = await prisma.alert.create({
         data: {
           tenant_id: device.tenant_id,
           device_id: device.id,
@@ -68,12 +69,14 @@ export async function pollDevice(deviceId: string) {
           severity: "critical",
         },
       });
+      await maybeOpenTicketsForAlert(alert.id);
     }
   } else {
     await prisma.alert.updateMany({
       where: { device_id: device.id, event: "device_down", status: "firing" },
       data: { status: "resolved", resolved_at: new Date() },
     });
+    await maybeCommentResolvedAlert(device.id, "device_down");
   }
 
   return { id: device.id, status };

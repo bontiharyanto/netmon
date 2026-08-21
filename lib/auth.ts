@@ -55,6 +55,22 @@ export const authOptions: NextAuthOptions = {
         token.tenantId = user.tenantId;
         token.tenantSlug = user.tenantSlug;
       }
+
+      const email = typeof token.email === "string" ? token.email.toLowerCase() : null;
+      const live = email
+        ? await prisma.user.findUnique({
+            where: { email },
+            include: { tenant: { select: { slug: true, status: true } } },
+          })
+        : null;
+
+      if (live?.tenant.status === "active") {
+        token.sub = live.id;
+        token.role = live.role;
+        token.tenantId = live.tenant_id;
+        token.tenantSlug = live.tenant.slug;
+      }
+
       return token;
     },
     async session({ session, token }) {

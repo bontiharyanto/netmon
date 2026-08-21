@@ -13,7 +13,7 @@ export default function HomePage() {
     <main className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.12),transparent_45%)]" />
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-        <Logo />
+        <Logo size="lg" />
         <div className="flex gap-2">
           <Button asChild variant="ghost">
             <Link href="/login">Sign in</Link>
@@ -26,7 +26,10 @@ export default function HomePage() {
       <section className="mx-auto grid max-w-6xl gap-10 px-6 pb-24 pt-16 md:grid-cols-2 md:items-center">
         <div>
           <p className="mb-3 font-mono text-xs uppercase tracking-[0.3em] text-primary">netmon.click</p>
-          <h1 className="text-4xl font-semibold leading-tight md:text-6xl">NETMON</h1>
+          <h1 className="mt-2 font-mono text-5xl font-semibold tracking-[0.18em] md:text-6xl">
+            <span className="text-primary">NET</span>
+            <span className="text-foreground">MON</span>
+          </h1>
           <p className="mt-4 text-lg text-muted-foreground">{TAGLINES[0]}. Multi-tenant NMS for on-premise and Cloud SaaS.</p>
           <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
             {TAGLINES.map((line) => (

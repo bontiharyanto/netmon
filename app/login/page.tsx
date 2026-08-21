@@ -42,7 +42,7 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <Logo />
+        <Logo size="lg" />
         <CardTitle className="pt-2">Sign in to NETMON</CardTitle>
       </CardHeader>
       <CardContent>

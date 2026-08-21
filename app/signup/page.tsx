@@ -42,7 +42,7 @@ export default function SignupPage() {
     <main className="flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <Logo />
+          <Logo size="lg" />
           <CardTitle>Onboarding tenant</CardTitle>
           <CardDescription>Subdomain akan jadi {`{slug}`}.netmon.click</CardDescription>
         </CardHeader>

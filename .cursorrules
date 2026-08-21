@@ -1,53 +1,67 @@
+*.cursorrules - NETMON ENTERPRISE v1.7*
+
 # ==========================================
 # PROJECT: NETMON - NETWORK MONITORING SYSTEM
 # DOMAIN: https://netmon.click
-# STACK: Next.js 14 + Prisma + PostgreSQL + Redis + BullMQ + Tailwind + shadcn + framer-motion
-# GOAL: NMS Multi-Tenant Pro. Bisa ON-PREMISE & CLOUD SAAS
+# SERVER IP: 103.190.214.224
+# STACK: Next.js 14 + Prisma + PostgreSQL + Redis + BullMQ + Tailwind + shadcn + Traefik
+# GOAL: NMS Multi-Tenant Pro. ON-CLOUD SAAS & ON-PREMISE. Satu codebase.
 # ==========================================
 
-## 1. BRANDING WAJIB
-1. NAMA PRODUK: NETMON
-2. DOMAIN UTAMA: https://netmon.click
-3. SUBDOMAIN CUSTOMER: {tenant}.netmon.click
-4. WARNA BRAND: Primary #, Background #
-5. LOGO: Text "NETMON" dengan icon radar/pulse
+## 1. BRANDING & INFRA
+1. NAMA: NETMON
+2. DOMAIN: https://netmon.click
+3. SERVER IP: 103.190.214.224
+4. WILDCARD DNS: *.netmon.click -> 103.190.214.224
+5. REVERSE PROXY: WAJIB Traefik untuk auto SSL *.netmon.click (mode cloud)
+6. TAGLINE: Your Network, Always On · Click to Monitor Everything · Enterprise Network Visibility
 
-## 2. DESIGN SYSTEM & UI/UX
-1. THEME: Default DARK MODE. Toggle di header
-2. FONT: Inter + JetBrains Mono
-3. KOMPONEN: shadcn/ui. Animasi framer-motion 200ms
-4. LAYOUT: Sidebar collapsible + Header sticky + Global Search
+## 2. DNS SETUP WAJIB DI CLOUDFLARE/NIAGAHOSTER
 
-## 3. DATABASE SCHEMA PRISMA - FINAL
-model tenant {
- id String @id @default(cuid())
- name String
- slug String @unique // ini jadi subdomain. ex: acme.netmon.click
- domain String
- management_email String
- brand_color String? @default("#")
- logo_url String?
- device_limit Int @default(100)
- status String @default("active")
- plan String @default("cloud_basic")
-}
-model user {
- id String @id @default(cuid())
- tenant_id String
- email String @unique
- name String?
- role String @default("viewer") // superadmin, admin, operator, viewer
-}
-model device {
- id String @id @default(cuid())
- tenant_id String
- hostname String
- ip String
- type String
- status String @default("unknown")
- @@unique([tenant_id, hostname])
- @@unique([ip])
-}
+A @ 103.190.214.224
+A * 103.190.214.224
+CNAME www netmon.click
+
+Tunggu 5 menit propagasi
+
+## 3. UI/UX — PROFESSIONAL, RINGAN, INTERNATIONAL CLASS
+WAJIB. Bukan dashboard ramai. Bukan template lokal murahan.
+
+1. Bahasa UI default: English. Data tenant boleh bilingual.
+2. Kesan: Datadog / Linear / Apple NOC — tenang, presisi, mahal.
+3. Dark mode default. Light mode opsional di header. Kontras aksesibel (WCAG AA).
+4. Font: Inter (UI) + JetBrains Mono (hostname, IP, metric, log).
+5. Warna: Primary #00E5C3, background gelap dalam, 1 aksen. Hindari rainbow badge.
+6. Komponen: shadcn/ui. Animasi framer-motion 200ms, ease-out, tidak berlebihan.
+7. Layout: sidebar collapsible + header sticky + global search. Density nyaman, whitespace cukup.
+8. Kartu KPI ringkas: angka mono, 1 hint, 0 dekorasi sia-sia.
+9. Tabel: zebra halus, status pill, hostname + IP mono.
+10. Topology: visual bersih, node kecil, edge tipis, label tidak bertabrakan.
+11. Dilarang: shadow berat, gradient kitsch, emoji di navigasi, skeleton flashy, autoplay noise.
+12. Performa: first paint cepat, chart lazy, query selalu `tenant_id`.
+13. Copy: pendek, profesional, tidak basecamp/slang. Error message manusiawi.
+
+## 4. MODE DEPLOY — ON CLOUD & ON PREMISE (WAJIB SAMA FITUR)
+Satu codebase. Fitur Cloud = fitur On-Prem. Yang beda hanya edge (Traefik vs port 3000) dan `IS_SAAS`.
+
+### MODE A — CLOUD SAAS `docker-compose.cloud.yml`
+- Multi tenant di netmon.click
+- Akses: https://acme.netmon.click
+- Traefik + Let's Encrypt wildcard `*.netmon.click`
+- `IS_SAAS=true`
+
+### MODE B — ON-PREMISE `docker-compose.onprem.yml`
+- Semua di server pelanggan. Tidak kirim data ke netmon.click kecuali pelanggan setuju.
+- Akses: https://nms.perusahaan.com (atau IP:3000)
+- Tidak pakai Traefik. Langsung port 3000
+- `IS_SAAS=false`
+- `NEXTAUTH_URL=https://nms.perusahaan.com`
+- AI jalan lokal (rules engine). LLM cloud opsional via `AI_API_KEY` pelanggan.
+
+## 5. DATABASE SCHEMA PRISMA
+model tenant { id String @id @default(cuid()) name String slug String @unique domain String management_email String brand_color String? device_limit Int @default(100) status String @default("active") plan String @default("cloud_basic") }
+model user { id String @id @default(cuid()) tenant_id String email String @unique role String @default("viewer") }
+model device { id String @id @default(cuid()) tenant_id String hostname String ip String type String status String @default("unknown") @@unique([tenant_id, hostname]) @@unique([ip]) }
 model device_link { id String @id @default(cuid()) tenant_id String from_device_id String to_device_id String status String @default("up") }
 model alert { id String @id @default(cuid()) tenant_id String device_id String event String status String @default("firing") severity String @default("critical") created_at DateTime @default(now()) }
 model sla { id String @id @default(cuid()) device_id String @unique uptime_30d Float @default(100) }
@@ -55,21 +69,130 @@ model metric { id String @id @default(cuid()) device_id String ts DateTime @defa
 model dashboard { id String @id @default(cuid()) tenant_id String name String layout Json }
 model audit_log { id String @id @default(cuid()) tenant_id String user_id String action String created_at DateTime @default(now()) }
 model subscription { id String @id @default(cuid()) tenant_id String @unique status String }
+model cmdb_ci { id String @id @default(cuid()) tenant_id String device_id String? ci_type String name String asset_tag String? serial String? owner String? status String @default("in_service") location String? }
 
-## 4. DEPLOYMENT MODES
-### MODE A: ON-PREMISE `docker-compose.onprem.yml`
-Semua di server pelanggan. Akses: https://nms.perusahaan.com
+## 6. DOCKER COMPOSE CLOUD SAAS
+File: `docker-compose.cloud.yml`
+Pakai IP 103.190.214.224 + Traefik untuk subdomain
+```yaml
+version: '3.8'
+services:
+ traefik:
+ image: traefik:v3.0
+ command:
+ - "--api.dashboard=true"
+ - "--providers.docker=true"
+ - "--entrypoints.web.address=:80"
+ - "--entrypoints.websecure.address=:443"
+ - "--certificatesresolvers.letsencrypt.acme.email=admin@netmon.click"
+ - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+ - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+ ports:
+ - "80:80"
+ - "443:443"
+ volumes:
+ - /var/run/docker.sock:/var/run/docker.sock
+ - ./letsencrypt:/letsencrypt
 
-### MODE B: CLOUD SAAS `docker-compose.cloud.yml`
-Multi tenant di netmon.click. Akses: https://acme.netmon.click
-Wajib setup wildcard DNS: *.netmon.click -> IP Server
+ web:
+ image: netmon/web:latest
+ environment:
+ DATABASE_URL: postgresql://nms:xxx@postgres:5432/nms
+ REDIS_URL: redis://redis:6379
+ NEXTAUTH_URL: https://netmon.click
+ APP_URL: https://netmon.click
+ IS_SAAS: true
+ SERVER_IP: 103.190.214.224
+ labels:
+ - "traefik.enable=true"
+ - "traefik.http.routers.web.rule=Host(`netmon.click`) || HostRegexp(`{subdomain:[a-z0-9-]+}.netmon.click`)"
+ - "traefik.http.routers.web.entrypoints=websecure"
+ - "traefik.http.routers.web.tls.certresolver=letsencrypt"
+ depends_on: [postgres, redis]
 
-## 5. MULTI-TENANCY & PORTAL
-1. ISOLASI: SEMUA query `where: { tenant_id: auth.tenant_id }`
-2. ROLES: superadmin, admin, operator, viewer
-3. UI SPLIT: `/dashboard` untuk admin. `/portal` untuk viewer di subdomain tenant
+ worker:
+ image: netmon/worker:latest
+ environment:
+ DATABASE_URL: postgresql://nms:xxx@postgres:5432/nms
+ REDIS_URL: redis://redis:6379
 
-## 6. 15 MODUL WAJIB
+ postgres:
+ image: postgres:16
+ volumes: [postgres_data:/var/lib/postgresql/data]
+
+ redis:
+ image: redis:7-alpine
+volumes: { postgres_data: }
+```
+
+## 7. DOCKER COMPOSE ON-PREMISE
+File: `docker-compose.onprem.yml`
+Tidak pakai Traefik. Langsung port 3000
+`IS_SAAS=false`
+`NEXTAUTH_URL=https://nms.perusahaan.com`
+
+## 8. MULTI-TENANCY
+1. ISOLASI MUTLAK: SEMUA query `where: { tenant_id: auth.tenant_id }`
+2. SUBDOMAIN: dari `req.headers.host`. `acme.netmon.click` -> tenant.slug = acme
+3. On-prem single-tenant: tetap pakai tenant_id (satu tenant default)
+
+## 9. RBAC — ROLE BASED ACCESS CONTROL (WAJIB)
+Bukan hanya label role. Setiap aksi dicek permission.
+
+### Roles
+- superadmin — platform NETMON (semua tenant)
+- admin — pemilik tenant, user, billing, write penuh
+- operator — operasi NOC: device, alert, poller, CMDB write. Tidak kelola user/billing
+- viewer — customer portal. READ ONLY
+
+### Permission matrix
+| Permission | superadmin | admin | operator | viewer |
+| assets.read / cmdb.read / topology.read / sla.read / alert.read | Y | Y | Y | Y (portal) |
+| assets.write / cmdb.write / topology.write / alert.write / bulk / import | Y | Y | Y | N |
+| ai.use | Y | Y | Y | Y (hanya data tenant sendiri) |
+| users.manage / security.manage | Y | Y | N | N |
+| dashboard.builder / reports.export / agent.enroll | Y | Y | Y | N |
+| platform.admin | Y | N | N | N |
+
+Viewer yang buka `/dashboard` WAJIB redirect ke `/portal`.
+Semua API write menolak viewer (403). Audit setiap write.
+
+## 10. CUSTOMER PORTAL — JAWABAN PRODUK
+Bila customer (role viewer) login ke `/portal`:
+
+YA. Dia mendapat SEMUA aset tenant-nya, secara read-only:
+
+1. Asset inventory — hostname, IP, type, vendor, location, status
+2. CMDB — CI, asset tag, serial, owner, relasi ke device
+3. Visual topology — peta tautan live (sama data dengan NOC, tanpa edit)
+4. SLA 30 hari + status page publik
+5. Alert/incident yang sedang firing (tanpa acknowledge/resolve)
+6. NETMON AI insights (ringkasan, bukan aksi destruktif)
+
+TIDAK boleh: tambah/hapus device, bulk, import, user management, agent token, dashboard builder, superadmin, ubah topology, jalankan perintah ke device.
+
+Portal = kaca. NOC = kemudi.
+
+## 11. NETMON AI (WAJIB)
+Modul AI Copilot. Tenant-scoped. Tidak boleh bocor lintas tenant.
+
+Fitur:
+1. Ringkas alert firing jadi bahasa operator
+2. Root-cause hint dari topology + status neighbor
+3. Pertanyaan natural: "device mana yang SLA-nya jelek?"
+4. Saran kapasitas CPU/RAM/disk 24 jam
+5. Jawaban portal aman: tidak membocorkan user lain / secret / token
+
+Mode:
+- LOCAL (default on-prem): rules + data Prisma. Tanpa internet.
+- CLOUD LLM: jika `AI_API_KEY` di-set (OpenAI-compatible). Tetap inject konteks tenant saja.
+
+Route: `/dashboard/ai` dan `/portal/ai`
+API: `POST /api/ai/ask` body `{ question }`
+
+Dilarang: AI menulis ke device, AI bypass RBAC, AI lihat tenant lain.
+
+## 12. MODUL WAJIB
 MODUL 1-4: POLLER, ALERT, SLA, TOPOLOGY
 MODUL 5: IMPORT CSV/EXCEL
 MODUL 6: BULK ACTIONS
@@ -78,43 +201,38 @@ MODUL 8: STATUS PAGE /status/[tenant]
 MODUL 9: SECURITY + 2FA + SSO
 MODUL 10: AGENT
 MODUL 11: DASHBOARD BUILDER
-MODUL 12: PORTAL CUSTOMER /portal
-MODUL 13: USER MANAGEMENT
+MODUL 12: PORTAL CUSTOMER /portal (assets + CMDB + topology + AI)
+MODUL 13: USER MANAGEMENT + RBAC
 MODUL 14: ONBOARDING /signup
 MODUL 15: SUPERADMIN /admin
+MODUL 16: CMDB /dashboard/cmdb dan /portal/cmdb
+MODUL 17: NETMON AI /dashboard/ai dan /portal/ai
 
-## 7. ENV WAJIB
+## 13. ENV WAJIB
 
-DATABASE_URL=
-REDIS_URL=
-JWT_SECRET=
-ENCRYPT_KEY=
-IS_SAAS=false
+DATABASE_URL=postgresql://nms:xxx@postgres:5432/nms
+REDIS_URL=redis://redis:6379
+JWT_SECRET=xxx
+ENCRYPT_KEY=xxx
+IS_SAAS=true
 NEXTAUTH_URL=https://netmon.click
 APP_URL=https://netmon.click
+SERVER_IP=103.190.214.224
+AI_API_KEY=
+AI_BASE_URL=https://api.openai.com/v1
+AI_MODEL=gpt-4o-mini
 
-*NEXT STEP SETELAH BELI DOMAIN*
+## 14. PERINTAH DEPLOY DI SERVER 103.190.214.224
+1. `git clone https://github.com/bontiharyanto/netmon.git`
+2. `cp .env.example .env` isi semua
+3. `docker compose -f docker-compose.cloud.yml up -d`
+4. `npx prisma migrate deploy`
+5. Test: buka https://netmon.click dan https://demo.netmon.click
 
-1. *Setup DNS Wildcard* di Cloudflare/Niagahoster
+### CHECKLIST SETELAH INI
+1. DNS: A Record `@` dan `*` ke `103.190.214.224`
+2. Firewall: port `80, 443`
+3. Deploy: `docker compose -f docker-compose.cloud.yml up -d`
+4. Test subdomain setelah 10 menit: `test.netmon.click`
 
- A Record: @ -> IP Server kamu
- A Record: * -> IP Server kamu
-
-Biar `acme.netmon.click` langsung jalan
-
-2. *Ganti http://di.env*
-
- NEXTAUTH_URL=https://netmon.click
- APP_URL=https://netmon.click
-
-3. *SSL Otomatis*
- Pakai Traefik + Let's Encrypt biar `_.netmon.click` auto https
-
-4. *Email Branding*
- Kirim alert dari `noreply@netmon.click`
-
-*TAGLINE YANG COCOK BUAT http://NETMON.CLICK*
-1. `NETMON - Your Network, Always On`
-2. `NETMON - Click to Monitor Everything`
-3. `NETMON - Enterprise Network Visibility`
-
+Traefik otomatis SSL untuk `*.netmon.click`
