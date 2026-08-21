@@ -16,14 +16,15 @@ Sign in as admin or operator.
 | Alerts | `/dashboard/alerts` | Firing / resolved. Open a ticket from a firing alert |
 | Tickets | `/dashboard/tickets` | Inbox for local helpdesk and remote ITSM |
 | Topology | `/dashboard/topology` | Live links; upload CSV / Excel / JSON. Download filled CSV, Excel, or PDF. |
+| Map | `/dashboard/map` | Indonesia cities where devices are installed. Set City on Inventory. |
 | SLA | `/dashboard/sla` | 30-day uptime |
 
 ### Assets
 
 | Page | Path | What to do |
 | --- | --- | --- |
-| Inventory | `/dashboard/devices` | Hostname + IP (mono). Bulk mark / delete |
-| CMDB | `/dashboard/cmdb` | CI, asset tag, serial, owner |
+| Inventory | `/dashboard/devices` | Hostname + IP (mono). Set **City** for the Indonesia map. Bulk mark / delete |
+| CMDB | `/dashboard/cmdb` | Add / edit / delete CIs (asset tag, serial, owner, linked device). Portal is read-only. |
 | Import | `/dashboard/import` | CSV / Excel inventory |
 | Agents | `/dashboard/agents` | Issue a token for an existing Inventory device, then install the host script. Up/down is mainly the 60s TCP poller; the agent is an optional push of CPU/RAM/disk. |
 
@@ -34,13 +35,13 @@ Sign in as admin or operator.
 | Insights | `/dashboard/ai` | Copilot over tenant data |
 | Knowledge | `/dashboard/knowledge` | Runbooks; portal sees published only |
 | Boards | `/dashboard/dashboards` | JSON widget layouts |
-| Reports | `/dashboard/reports` | PDF export |
+| Reports | `/dashboard/reports` | Period (24h / 7d / 30d / month / custom). Table preview. Download PDF or Excel. |
 
 ### Admin
 
 | Page | Path | Who |
 | --- | --- | --- |
-| Users | `/dashboard/users` | admin+ |
+| Users | `/dashboard/users` | admin+: add, edit name/email/role, reset password, delete (not self / last admin) |
 | Settings | `/dashboard/settings` | Channels, Ticketing, AI |
 | Security | `/dashboard/security` | TOTP 2FA, session idle timeout, password rotation (30 days) |
 | Account | `/dashboard/account` | Change own password (required when older than 30 days) |
@@ -66,7 +67,7 @@ Viewers on `/portal` can see tickets but cannot reply. Full connector notes: [TI
 
 ## Customer portal (`/portal`)
 
-Login as `viewer`. Read-only: Overview, Assets, CMDB, Topology, Tickets, Knowledge, AI. The same mass-incident ticker appears here. Password rotation still applies.
+Login as `viewer`. Read-only: Overview, Assets, CMDB, Topology, Map, Tickets, Knowledge, AI. The same mass-incident ticker appears here. Password rotation still applies.
 
 Public status (no login): `/status/{tenant-slug}`.
 

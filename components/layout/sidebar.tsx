@@ -16,6 +16,7 @@ import {
   Gauge,
   GitFork,
   LayoutDashboard,
+  MapPin,
   Lightbulb,
   PanelsTopLeft,
   PanelLeft,
@@ -49,6 +50,7 @@ const PRIMARY: { key: GroupKey; items: NavItem[] }[] = [
       { href: "/dashboard/tickets", labelKey: "tickets", icon: Ticket, permission: "alert.read" },
       { href: "/dashboard/sla", labelKey: "sla", icon: Gauge, permission: "sla.read" },
       { href: "/dashboard/topology", labelKey: "topology", icon: GitFork, permission: "topology.read" },
+      { href: "/dashboard/map", labelKey: "map", icon: MapPin, permission: "assets.read" },
     ],
   },
   {

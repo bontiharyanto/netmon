@@ -98,3 +98,23 @@
 .recharts-tooltip-item-value {
   color: hsl(var(--foreground)) !important;
 }
+
+.leaflet-container {
+  z-index: 0;
+  font-family: var(--font-inter), sans-serif;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: none;
+  border: 1px solid hsl(var(--border));
+}
+
+.leaflet-tooltip {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: none;
+}

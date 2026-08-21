@@ -3,12 +3,14 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { writeAudit } from "@/lib/audit";
+import { normalizeCityInput, resolveDeviceCity } from "@/lib/geo/indonesia-cities";
 
 const schema = z.object({
   hostname: z.string().min(1),
   ip: z.string().min(3),
   type: z.string().min(1),
   location: z.string().optional(),
+  city: z.string().max(80).optional(),
 });
 
 export async function GET() {
@@ -35,8 +37,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Device limit tercapai" }, { status: 409 });
   }
 
+  const city =
+    normalizeCityInput(parsed.data.city) ??
+    resolveDeviceCity({ city: parsed.data.city, location: parsed.data.location })?.slug ??
+    null;
+
   const device = await prisma.device.create({
-    data: { ...parsed.data, tenant_id: gate.session.user.tenantId },
+    data: {
+      hostname: parsed.data.hostname,
+      ip: parsed.data.ip,
+      type: parsed.data.type,
+      location: parsed.data.location || null,
+      city,
+      tenant_id: gate.session.user.tenantId,
+    },
   });
   await prisma.sla.create({ data: { device_id: device.id, uptime_30d: 100 } });
   await writeAudit(gate.session.user.tenantId, gate.session.user.id, `device.create:${device.hostname}`);

@@ -15,6 +15,8 @@ const MODULES = [
   { q: "sla", href: "/dashboard/sla", portal: "/portal", label: { en: "SLA", id: "SLA" } },
   { q: "ticket novacrm", href: "/dashboard/tickets", portal: "/portal/tickets", label: { en: "Tickets", id: "Tiket" } },
   { q: "topology map", href: "/dashboard/topology", portal: "/portal/topology", label: { en: "Topology", id: "Topologi" } },
+  { q: "map indonesia kota city peta", href: "/dashboard/map", portal: "/portal/map", label: { en: "Site map", id: "Peta situs" } },
+  { q: "report pdf excel tanggal period", href: "/dashboard/reports", portal: "/portal/help", label: { en: "Reports", id: "Laporan" } },
   { q: "import", href: "/dashboard/import", portal: "/portal/help", label: { en: "Import", id: "Impor" } },
   { q: "agent token heartbeat", href: "/dashboard/agents", portal: "/portal/help", label: { en: "Agents", id: "Agen" } },
   { q: "channel slack email", href: "/dashboard/settings", portal: "/portal/help", label: { en: "Channels", id: "Kanal" } },

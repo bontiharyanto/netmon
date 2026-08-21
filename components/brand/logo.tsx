@@ -43,13 +43,14 @@ export function Logo({
   className?: string;
   compact?: boolean;
   pulse?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }) {
-  const mark = size === "lg" ? "h-11 w-11" : size === "sm" ? "h-7 w-7" : "h-8 w-8";
+  const mark = size === "xl" ? "h-24 w-24" : size === "lg" ? "h-11 w-11" : size === "sm" ? "h-7 w-7" : "h-8 w-8";
+  const radius = size === "xl" ? "rounded-[18px]" : "rounded-[10px]";
 
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <span className={cn("relative shrink-0 overflow-hidden rounded-[10px] shadow-[0_0_0_1px_hsl(var(--primary)/0.12)]", mark)}>
+      <span className={cn("relative shrink-0 overflow-hidden shadow-[0_0_0_1px_hsl(var(--primary)/0.12)]", radius, mark)}>
         {pulse && <span className="pointer-events-none absolute inset-0 rounded-[10px] border border-primary/30 animate-pulseRing" />}
         <NetMark className="h-full w-full" />
       </span>

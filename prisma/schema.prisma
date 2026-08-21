@@ -68,6 +68,7 @@ model device {
   status        String        @default("unknown")
   vendor        String?
   location      String?
+  city          String?
   last_seen     DateTime?
   created_at    DateTime      @default(now())
   tenant        tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)

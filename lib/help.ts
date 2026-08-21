@@ -48,8 +48,36 @@ export const HELP_ARTICLES: HelpArticle[] = [
       id: "Bagaimana menambah perangkat?",
     },
     body: {
-      en: "Inventory first. Add hostname + IP + type on /dashboard/devices, or Import CSV/Excel with columns hostname, ip, type, location. Agents cannot create devices. IP must be unique. After that the poller and/or an agent can update status.",
-      id: "Inventory dulu. Tambah hostname + IP + type di /dashboard/devices, atau Import CSV/Excel kolom hostname, ip, type, location. Agents tidak membuat perangkat baru. IP harus unik. Setelah itu poller dan/atau agent bisa mengubah status.",
+      en: "Inventory first. Add hostname + IP + type on /dashboard/devices, or Import CSV/Excel with columns hostname, ip, type, location, city. City is an Indonesian city (Jakarta, Surabaya, BSD…). It places the device on Site map. Agents cannot create devices. IP must be unique. After that the poller and/or an agent can update status.",
+      id: "Inventory dulu. Tambah hostname + IP + type di /dashboard/devices, atau Import CSV/Excel kolom hostname, ip, type, location, city. City adalah kota Indonesia (Jakarta, Surabaya, BSD…). Itu menempatkan perangkat di Peta. Agents tidak membuat perangkat baru. IP harus unik. Setelah itu poller dan/atau agent bisa mengubah status.",
+    },
+  },
+  {
+    id: "cmdb-edit",
+    tags: ["cmdb", "ci", "edit", "asset tag", "serial"],
+    nocHref: "/dashboard/cmdb",
+    portalHref: "/portal/cmdb",
+    title: {
+      en: "Edit CMDB records",
+      id: "Ubah catatan CMDB",
+    },
+    body: {
+      en: "On /dashboard/cmdb, operators and admins can add, edit, and delete configuration items (name, type, asset tag, serial, owner, location, status, linked device). Portal /portal/cmdb is read-only.",
+      id: "Di /dashboard/cmdb, operator dan admin bisa menambah, mengubah, dan menghapus CI (nama, tipe, asset tag, serial, owner, lokasi, status, perangkat terkait). Portal /portal/cmdb hanya baca.",
+    },
+  },
+  {
+    id: "users-edit",
+    tags: ["user", "role", "password", "admin", "hapus"],
+    nocHref: "/dashboard/users",
+    portalHref: "/portal/help",
+    title: {
+      en: "Edit users",
+      id: "Ubah pengguna",
+    },
+    body: {
+      en: "Admins can change name, email, role, reset a password, or delete a user on /dashboard/users. You cannot delete yourself, demote/delete the last admin, or edit platform superadmin here. Operators cannot open Users. Change your own password on Account.",
+      id: "Admin bisa mengubah nama, email, peran, reset kata sandi, atau menghapus pengguna di /dashboard/users. Anda tidak bisa menghapus diri sendiri, menurunkan/menghapus admin terakhir, atau mengedit superadmin platform di sini. Operator tidak membuka Users. Kata sandi sendiri di Account.",
     },
   },
   {
@@ -105,7 +133,35 @@ export const HELP_ARTICLES: HelpArticle[] = [
     },
     body: {
       en: "Topology is a drawing of links, not a probe. Upload from,to,status. Download CSV/Excel/PDF filled from the current table. Endpoints must match Inventory hostnames or IPs.",
-      id: "Topologi adalah gambar tautan, bukan probe. Unggah from,to,status. Unduh CSV/Excel/PDF terisi dari tabel saat ini. Endpoint harus cocok hostname atau IP Inventory.",
+      id: "Topology adalah gambar tautan, bukan probe. Unggah from,to,status. Unduh CSV/Excel/PDF terisi dari tabel saat ini. Endpoint harus cocok hostname atau IP Inventory.",
+    },
+  },
+  {
+    id: "sitemap",
+    tags: ["map", "peta", "kota", "indonesia", "city", "location", "jakarta"],
+    nocHref: "/dashboard/map",
+    portalHref: "/portal/map",
+    title: {
+      en: "Indonesia site map",
+      id: "Peta kota Indonesia",
+    },
+    body: {
+      en: "Site map is a geographic map of Indonesia (not topology). Pins are cities that have devices. Set City on Inventory, or put a city name in Location (Jakarta, Surabaya, Bekasi, BSD). Unmapped devices stay in the side list. Tiles need internet (CARTO/OSM).",
+      id: "Peta situs adalah peta geografis Indonesia (bukan topologi). Pin adalah kota yang punya perangkat. Isi City di Inventory, atau tulis nama kota di Location (Jakarta, Surabaya, Bekasi, BSD). Perangkat tanpa kota ada di daftar samping. Tile butuh internet (CARTO/OSM).",
+    },
+  },
+  {
+    id: "reports",
+    tags: ["report", "pdf", "excel", "xlsx", "period", "tanggal", "laporan"],
+    nocHref: "/dashboard/reports",
+    portalHref: "/portal/help",
+    title: {
+      en: "Operations report",
+      id: "Laporan operasi",
+    },
+    body: {
+      en: "Reports is a period snapshot: 24h, 7 days, 30 days, this month, or custom dates. Preview tables first (devices, alerts, tickets), then Download PDF or Excel. Device status is current. Alerts and tickets follow the date range. SLA is the rolling 30-day figure, not recomputed for the range.",
+      id: "Reports adalah cuplikan periode: 24 jam, 7 hari, 30 hari, bulan ini, atau tanggal kustom. Preview tabel dulu (perangkat, alert, tiket), lalu unduh PDF atau Excel. Status perangkat adalah kondisi saat ini. Alert dan tiket mengikuti rentang tanggal. SLA adalah angka 30 hari berjalan, bukan dihitung ulang untuk rentang itu.",
     },
   },
   {

@@ -18,15 +18,17 @@ Login errors: wrong password vs `OTP_REQUIRED` vs `DATABASE_UNAVAILABLE` (Postgr
 | Method | Path | Permission |
 | --- | --- | --- |
 | GET/POST | `/api/devices` | assets |
+| PATCH | `/api/devices/{id}` | assets.write · city / location |
 | POST | `/api/devices/bulk` | bulk.actions |
 | GET | `/api/alerts` | alert.read |
 | POST | `/api/alerts` | alert.write |
 | GET | `/api/dashboard/overview` | session |
-| GET | `/api/cmdb` | cmdb |
+| GET/POST | `/api/cmdb` | cmdb |
+| PATCH/DELETE | `/api/cmdb/{id}` | cmdb.write |
 | POST | `/api/import` | import.inventory |
 | POST | `/api/topology/import` | topology.write |
 | GET | `/api/topology/template` | topology.read · `?format=csv\|xlsx\|pdf` filled from live links |
-| GET | `/api/reports` | reports.export |
+| GET | `/api/reports` | reports.export · `?from&to&format=json\|pdf\|xlsx` |
 
 ## Ticketing
 
@@ -59,7 +61,8 @@ NovaCRM outbound (server-side, not a public NETMON route):
 | POST | `/api/ai/ask` |
 | GET | `/api/ai/insights` |
 | GET/PUT | `/api/ai/settings` |
-| GET/POST | `/api/users` |
+| GET/POST | `/api/users` | users.manage |
+| PATCH/DELETE | `/api/users/{id}` | users.manage · cannot delete self / last admin |
 | POST | `/api/security/2fa` · `/api/security/2fa/confirm` |
 | GET/PATCH | `/api/security/session` | Idle timeout + password rotation days |
 | PATCH | `/api/account/password` | Own password; resets 30-day clock |

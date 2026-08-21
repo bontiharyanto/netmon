@@ -5,8 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/auth";
 import { canWrite } from "@/lib/roles";
 import { writeAudit } from "@/lib/audit";
+import { normalizeCityInput, resolveDeviceCity } from "@/lib/geo/indonesia-cities";
 
-type Row = { hostname?: string; ip?: string; type?: string; location?: string };
+type Row = { hostname?: string; ip?: string; type?: string; location?: string; city?: string };
 
 export async function POST(req: Request) {
   const session = await getAuthSession();
@@ -39,6 +40,13 @@ export async function POST(req: Request) {
           ip: String(row.ip),
           type: String(row.type ?? "unknown"),
           location: row.location ? String(row.location) : null,
+          city:
+            normalizeCityInput(row.city ? String(row.city) : null) ??
+            resolveDeviceCity({
+              city: row.city ? String(row.city) : null,
+              location: row.location ? String(row.location) : null,
+            })?.slug ??
+            null,
         },
       });
       await prisma.sla.create({ data: { device_id: device.id } });

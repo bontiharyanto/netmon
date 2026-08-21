@@ -1,47 +1,33 @@
 import { NextResponse } from "next/server";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import { prisma } from "@/lib/prisma";
-import { getAuthSession } from "@/lib/auth";
+import { requirePermission } from "@/lib/rbac";
+import { buildReport, parseReportRange, reportFilename, reportPdf, reportXlsx } from "@/lib/reports";
 
-export async function GET() {
-  const session = await getAuthSession();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET(req: Request) {
+  const gate = await requirePermission("reports.export");
+  if (gate.error || !gate.session) return gate.error;
 
-  const [devices, alerts, slas] = await Promise.all([
-    prisma.device.findMany({ where: { tenant_id: session.user.tenantId } }),
-    prisma.alert.findMany({ where: { tenant_id: session.user.tenantId }, include: { device: true } }),
-    prisma.sla.findMany({ include: { device: true } }),
-  ]);
-  const tenantSlas = slas.filter((row) => row.device.tenant_id === session.user.tenantId);
+  const url = new URL(req.url);
+  const format = (url.searchParams.get("format") ?? "json").toLowerCase();
+  const { from, to } = parseReportRange(url.searchParams.get("from"), url.searchParams.get("to"));
+  const payload = await buildReport(gate.session.user.tenantId, gate.session.user.tenantSlug, from, to);
 
-  const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text("NETMON Operations Report", 14, 18);
-  doc.setFontSize(10);
-  doc.text(`Tenant: ${session.user.tenantSlug} · ${new Date().toISOString()}`, 14, 26);
+  if (format === "pdf") {
+    return new NextResponse(reportPdf(payload), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename=${reportFilename(payload, "pdf")}`,
+      },
+    });
+  }
 
-  autoTable(doc, {
-    startY: 32,
-    head: [["Hostname", "IP", "Status"]],
-    body: devices.map((d) => [d.hostname, d.ip, d.status]),
-  });
-  autoTable(doc, {
-    startY: (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8,
-    head: [["Device", "SLA 30d"]],
-    body: tenantSlas.map((s) => [s.device.hostname, `${s.uptime_30d.toFixed(2)}%`]),
-  });
-  autoTable(doc, {
-    startY: (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8,
-    head: [["Event", "Device", "Status"]],
-    body: alerts.map((a) => [a.event, a.device.hostname, a.status]),
-  });
+  if (format === "xlsx" || format === "excel") {
+    return new NextResponse(Buffer.from(reportXlsx(payload)), {
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename=${reportFilename(payload, "xlsx")}`,
+      },
+    });
+  }
 
-  const bytes = doc.output("arraybuffer");
-  return new NextResponse(bytes, {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": "attachment; filename=netmon-report.pdf",
-    },
-  });
+  return NextResponse.json(payload);
 }

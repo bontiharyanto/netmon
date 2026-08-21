@@ -208,32 +208,32 @@ async function main() {
   });
 
   const demoDevices = [
-    { hostname: "core-sw-01", ip: "10.10.1.1", type: "switch", status: "up", vendor: "Cisco", location: "DC-A / Rack-01" },
-    { hostname: "core-sw-02", ip: "10.10.1.2", type: "switch", status: "up", vendor: "Cisco", location: "DC-A / Rack-01" },
-    { hostname: "edge-fw-01", ip: "10.10.1.10", type: "firewall", status: "up", vendor: "Fortinet", location: "DC-A / Edge" },
-    { hostname: "edge-rtr-01", ip: "10.10.1.11", type: "router", status: "up", vendor: "MikroTik", location: "DC-A / Edge" },
-    { hostname: "acc-sw-lt3", ip: "10.10.2.10", type: "switch", status: "degraded", vendor: "HPE", location: "HQ / Lantai-3" },
-    { hostname: "acc-sw-lt7", ip: "10.10.2.11", type: "switch", status: "up", vendor: "HPE", location: "HQ / Lantai-7" },
-    { hostname: "ap-lt7-01", ip: "10.10.4.21", type: "access-point", status: "down", vendor: "Ubiquiti", location: "HQ / Lantai-7" },
-    { hostname: "ap-lt7-02", ip: "10.10.4.22", type: "access-point", status: "up", vendor: "Ubiquiti", location: "HQ / Lantai-7" },
-    { hostname: "srv-nms-01", ip: "10.10.3.5", type: "server", status: "up", vendor: "Dell", location: "DC-A / Compute" },
-    { hostname: "srv-app-01", ip: "10.10.3.6", type: "server", status: "up", vendor: "Dell", location: "DC-A / Compute" },
-    { hostname: "srv-db-01", ip: "10.10.3.7", type: "server", status: "up", vendor: "HP", location: "DC-A / Compute" },
-    { hostname: "cctv-nvr-01", ip: "10.10.5.8", type: "nvr", status: "unknown", vendor: "Hikvision", location: "Branch-BSD" },
-    { hostname: "olt-pon-01", ip: "10.10.6.1", type: "olt", status: "up", vendor: "ZTE", location: "POP-Cibubur" },
-    { hostname: "br-bsd-rtr", ip: "10.20.1.1", type: "router", status: "degraded", vendor: "MikroTik", location: "Branch-BSD" },
+    { hostname: "core-sw-01", ip: "10.10.1.1", type: "switch", status: "up", vendor: "Cisco", location: "DC-A / Rack-01", city: "jakarta" },
+    { hostname: "core-sw-02", ip: "10.10.1.2", type: "switch", status: "up", vendor: "Cisco", location: "DC-A / Rack-01", city: "jakarta" },
+    { hostname: "edge-fw-01", ip: "10.10.1.10", type: "firewall", status: "up", vendor: "Fortinet", location: "DC-A / Edge", city: "jakarta" },
+    { hostname: "edge-rtr-01", ip: "10.10.1.11", type: "router", status: "up", vendor: "MikroTik", location: "DC-A / Edge", city: "jakarta" },
+    { hostname: "acc-sw-lt3", ip: "10.10.2.10", type: "switch", status: "degraded", vendor: "HPE", location: "HQ / Lantai-3", city: "jakarta" },
+    { hostname: "acc-sw-lt7", ip: "10.10.2.11", type: "switch", status: "up", vendor: "HPE", location: "HQ / Lantai-7", city: "jakarta" },
+    { hostname: "ap-lt7-01", ip: "10.10.4.21", type: "access-point", status: "down", vendor: "Ubiquiti", location: "HQ / Lantai-7", city: "jakarta" },
+    { hostname: "ap-lt7-02", ip: "10.10.4.22", type: "access-point", status: "up", vendor: "Ubiquiti", location: "HQ / Lantai-7", city: "jakarta" },
+    { hostname: "srv-nms-01", ip: "10.10.3.5", type: "server", status: "up", vendor: "Dell", location: "DC-A / Compute", city: "jakarta" },
+    { hostname: "srv-app-01", ip: "10.10.3.6", type: "server", status: "up", vendor: "Dell", location: "DC-A / Compute", city: "jakarta" },
+    { hostname: "srv-db-01", ip: "10.10.3.7", type: "server", status: "up", vendor: "HP", location: "DC-A / Compute", city: "jakarta" },
+    { hostname: "cctv-nvr-01", ip: "10.10.5.8", type: "nvr", status: "unknown", vendor: "Hikvision", location: "Branch-BSD", city: "tangerang-selatan" },
+    { hostname: "olt-pon-01", ip: "10.10.6.1", type: "olt", status: "up", vendor: "ZTE", location: "POP-Cibubur", city: "jakarta" },
+    { hostname: "br-bsd-rtr", ip: "10.20.1.1", type: "router", status: "degraded", vendor: "MikroTik", location: "Branch-BSD", city: "tangerang-selatan" },
   ];
 
   const acmeDevices = [
-    { hostname: "acme-core-01", ip: "172.16.1.1", type: "switch", status: "up", vendor: "Cisco", location: "POP-Pusat" },
-    { hostname: "acme-fw-01", ip: "172.16.1.2", type: "firewall", status: "up", vendor: "Sophos", location: "POP-Pusat" },
-    { hostname: "acme-olt-02", ip: "172.16.2.10", type: "olt", status: "down", vendor: "Huawei", location: "POP-Bekasi" },
+    { hostname: "acme-core-01", ip: "172.16.1.1", type: "switch", status: "up", vendor: "Cisco", location: "POP-Pusat", city: "jakarta" },
+    { hostname: "acme-fw-01", ip: "172.16.1.2", type: "firewall", status: "up", vendor: "Sophos", location: "POP-Pusat", city: "jakarta" },
+    { hostname: "acme-olt-02", ip: "172.16.2.10", type: "olt", status: "down", vendor: "Huawei", location: "POP-Bekasi", city: "bekasi" },
   ];
 
   const jakartaDevices = [
-    { hostname: "jkt-bb-rtr-01", ip: "103.190.214.10", type: "router", status: "up", vendor: "Juniper", location: "NARUS" },
-    { hostname: "jkt-bb-rtr-02", ip: "103.190.214.11", type: "router", status: "up", vendor: "Juniper", location: "NEO" },
-    { hostname: "jkt-pe-01", ip: "103.190.214.20", type: "router", status: "degraded", vendor: "Cisco", location: "Kuningan" },
+    { hostname: "jkt-bb-rtr-01", ip: "103.190.214.10", type: "router", status: "up", vendor: "Juniper", location: "NARUS", city: "jakarta" },
+    { hostname: "jkt-bb-rtr-02", ip: "103.190.214.11", type: "router", status: "up", vendor: "Juniper", location: "NEO", city: "jakarta" },
+    { hostname: "jkt-pe-01", ip: "103.190.214.20", type: "router", status: "degraded", vendor: "Cisco", location: "Kuningan", city: "jakarta" },
   ];
 
   async function insertDevices(

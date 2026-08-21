@@ -9,6 +9,7 @@ import {
   Bot,
   Gauge,
   GitFork,
+  MapPin,
   Radio,
   Server,
 } from "lucide-react";
@@ -118,6 +119,9 @@ export function NocBoard({ data }: { data: DashboardOverview }) {
           </Link>
           <Link href="/dashboard/topology" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
             Topology
+          </Link>
+          <Link href="/dashboard/map" className="rounded-md border border-border px-3 py-1.5 hover:bg-muted">
+            Map
           </Link>
         </div>
       </div>
@@ -278,8 +282,11 @@ export function NocBoard({ data }: { data: DashboardOverview }) {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle>Sites</CardTitle>
+            <Link href="/dashboard/map" className="text-xs text-primary hover:underline">
+              Map
+            </Link>
           </CardHeader>
           <CardContent className="space-y-2">
             {locations.map((row) => (
@@ -300,6 +307,7 @@ export function NocBoard({ data }: { data: DashboardOverview }) {
             {[
               { href: "/dashboard/devices", label: "Poller", icon: Activity },
               { href: "/dashboard/topology", label: "Topology", icon: GitFork },
+              { href: "/dashboard/map", label: "Map", icon: MapPin },
               { href: "/dashboard/agents", label: "Agents", icon: Bot },
               { href: "/dashboard/sla", label: "SLA", icon: Gauge },
             ].map((item) => (

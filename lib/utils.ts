@@ -19,8 +19,8 @@ export function formatPercent(value: number) {
 
 export function statusTone(status: string) {
   const value = status.toLowerCase();
-  if (value === "up" || value === "active" || value === "online" || value === "resolved" || value === "closed") return "ok";
-  if (value === "down" || value === "firing" || value === "critical" || value === "urgent") return "crit";
-  if (value === "degraded" || value === "warning" || value === "open" || value === "pending") return "warn";
+  if (value === "up" || value === "active" || value === "online" || value === "resolved" || value === "closed" || value === "in_service") return "ok";
+  if (value === "down" || value === "firing" || value === "critical" || value === "urgent" || value === "outage") return "crit";
+  if (value === "degraded" || value === "warning" || value === "open" || value === "pending" || value === "maintenance") return "warn";
   return "muted";
 }
