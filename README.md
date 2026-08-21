@@ -28,7 +28,7 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | [Architecture](docs/ARCHITECTURE.md) | Poller, tenancy, layout |
 | [RBAC](docs/RBAC.md) | Roles, portal vs NOC |
 | [User guide](docs/USER-GUIDE.md) | Daily console |
-| [Monitor devices](docs/MONITORING.md) | Inventory, poller, agent, firewall, troubleshooting |
+| [Monitor devices](docs/MONITORING.md) | Inventory, poller, agent, CCTV/NVR up/down, troubleshooting |
 | [Help in the app](docs/USER-GUIDE.md) | `/dashboard/help` searchable |
 | [Database](docs/DATABASE.md) | Indexes and what is not optimized yet |
 | [Ticketing](docs/TICKETING.md) | Helpdesk, NovaCRM, Jira |
@@ -50,7 +50,7 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | SLA | `/dashboard/sla` | 30-day uptime |
 | Topology | `/dashboard/topology` | Live map + file upload |
 | Import | `/dashboard/import` | CSV / Excel |
-| Bulk | `/dashboard/devices` | Multi-select |
+| Inventory | `/dashboard/devices` | Hostname + IP. CCTV/NVR as up/down (not live video) |
 | Reports | `/dashboard/reports` | PDF |
 | Status page | `/status/[tenant]` | Public |
 | Security | `/dashboard/security` | TOTP 2FA, idle timeout |

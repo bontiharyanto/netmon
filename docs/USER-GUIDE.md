@@ -2,7 +2,7 @@
 
 UI chrome is English. Dark mode is default; light mode is in the header.
 
-**Putting devices under watch:** [MONITORING.md](MONITORING.md). In the app: **Help** (`/dashboard/help`) is searchable (probe, agent, token, down).
+**Putting devices under watch:** [MONITORING.md](MONITORING.md) (including CCTV/NVR up/down, not live video). In the app: **Help** (`/dashboard/help`) is searchable (probe, agent, token, down, cctv).
 
 ## NOC console (`/dashboard`)
 

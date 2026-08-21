@@ -11,6 +11,7 @@ import { searchHelp } from "@/lib/help";
 const MODULES = [
   { q: "help bantuan", href: "/dashboard/help", portal: "/portal/help", label: { en: "Help", id: "Bantuan" } },
   { q: "device inventory", href: "/dashboard/devices", portal: "/portal/assets", label: { en: "Inventory", id: "Inventaris" } },
+  { q: "cctv nvr camera hikvision dahua", href: "/dashboard/devices", portal: "/portal/assets", label: { en: "CCTV / NVR", id: "CCTV / NVR" } },
   { q: "alert", href: "/dashboard/alerts", portal: "/portal", label: { en: "Alerts", id: "Alert" } },
   { q: "sla", href: "/dashboard/sla", portal: "/portal", label: { en: "SLA", id: "SLA" } },
   { q: "ticket novacrm", href: "/dashboard/tickets", portal: "/portal/tickets", label: { en: "Tickets", id: "Tiket" } },

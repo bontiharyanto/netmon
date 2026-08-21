@@ -206,6 +206,20 @@ export const HELP_ARTICLES: HelpArticle[] = [
       id: "Saat poller menandai down, alert critical device_down dibuat, kanal yang enabled diberitahu, dan tiket Helpdesk atau NovaCRM bisa auto-open. Atur Settings → Channels dan Settings → Ticketing.",
     },
   },
+  {
+    id: "cctv",
+    tags: ["cctv", "nvr", "dvr", "camera", "hikvision", "dahua", "axis", "vms", "onvif", "rtsp"],
+    nocHref: "/dashboard/devices",
+    portalHref: "/portal/assets",
+    title: {
+      en: "Can I monitor CCTV?",
+      id: "Bisa monitor CCTV?",
+    },
+    body: {
+      en: "Yes, as inventory up/down — not live video. Add the NVR or camera IP (type nvr or camera). Vendor is a label (Hikvision, Dahua, Axis, …); there is no brand SDK. Poller uses TCP 80. Private LAN from cloud needs an agent. NETMON does not pull cameras from a VMS. Details: docs/MONITORING.md section 4.4.",
+      id: "Ya, sebagai up/down di Inventory — bukan live video. Daftarkan IP NVR atau kamera (type nvr atau camera). Vendor hanya label (Hikvision, Dahua, Axis, …); tidak ada SDK merek. Poller memakai TCP 80. IP lokal dari cloud butuh agent. NETMON tidak menarik daftar kamera dari VMS. Rincian: docs/MONITORING.md bagian 4.4.",
+    },
+  },
 ];
 
 export function searchHelp(query: string) {

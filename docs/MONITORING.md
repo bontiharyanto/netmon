@@ -66,7 +66,7 @@ Cloud tenant URL: `https://{slug}.netmon.click` (example: [demo.netmon.click](ht
 2. **Add device**:
    - `hostname` — unique per tenant (example `edge-fw-01`)
    - `ip` — unique in the whole database (example `103.190.214.20`)
-   - `type` — `switch` / `firewall` / `router` / `server` / …
+   - `type` — `switch` / `firewall` / `router` / `server` / `nvr` / `camera` / …
    - `location` — optional (`DC-A / Rack-01`)
 3. Click **Add**.
 
@@ -96,6 +96,21 @@ Allow **TCP port 80** from the NETMON worker:
 - On-prem: source = the NMS server IP
 
 HTTP does not need a useful website. A SYN-ACK on `:80` is enough for “up”. If the box has no listener on 80, poller will report **down** even if the device is alive (ICMP-only gear, or HTTPS-only on 443).
+
+### 4.4 CCTV / NVR / cameras
+
+NETMON can watch cameras, NVRs, and DVRs as **inventory devices** (up/down, alert, SLA, map). It is **not** a VMS: no live view, no RTSP/ONVIF, no recording, no mosaic.
+
+`vendor` is optional free text. Hikvision, Dahua, Axis, Uniview, Bosch, and generic IPC all use the same probe. There is no brand SDK.
+
+1. Inventory: hostname (`nvr-bsd-01` / `cam-lobby-01`), IP, type `nvr` or `camera`, optional vendor and city.
+2. Probe:
+   - **Cloud** + public IP: open HTTP **TCP 80** from `103.190.214.224` (or NAT 80 → the NVR’s web port if the UI is on 8080).
+   - **Cloud** + private `10.x` / `192.168.x`: poller cannot reach the LAN. Issue an **agent** on the NVR or a jump host that can HTTPS to `https://{tenant}.netmon.click`.
+   - **On-prem** worker on the same LAN: TCP 80 on the LAN is enough.
+3. Wait ~60s for Overview. Set **City** if the site should appear on the Indonesia map.
+
+NETMON does **not** import camera lists from a VMS (HikCentral, Milestone, Dahua DSS, …). Register each NVR or camera IP in Inventory.
 
 ---
 
@@ -326,5 +341,6 @@ Inventory still required (hostname + a unique IP field) → **agent** on each ho
 - ICMP ping / SNMP GET / TCP port other than 80 (poller port is fixed at 80)
 - Auto-discovery / CDP / LLDP ingest (topology is a file you upload)
 - NETMON pulling via SSH into the device
+- CCTV live view, RTSP/ONVIF, recording, or sync from a VMS
 
 Those would be new product work. Today you **register**, then **poll TCP 80** and/or **push a heartbeat**.
