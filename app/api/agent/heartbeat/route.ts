@@ -18,7 +18,15 @@ export async function POST(req: Request) {
     where: { token: parsed.data.token },
     include: { device: true },
   });
-  if (!agent) return NextResponse.json({ error: "Unknown agent" }, { status: 401 });
+  if (!agent) {
+    return NextResponse.json(
+      {
+        error: "Unknown agent",
+        hint: "Use the hex token from /dashboard/agents (Copy install command). TOKEN_DARI_KARTU is only an example.",
+      },
+      { status: 401 },
+    );
+  }
 
   await prisma.$transaction([
     prisma.agent.update({

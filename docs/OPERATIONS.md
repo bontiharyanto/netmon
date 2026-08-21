@@ -44,6 +44,10 @@ Restart Next.js. `lib/prisma.ts` busts the dev singleton when the generation sta
 
 Usually HMR or a brief API blip. The bell swallows fetch errors; refresh if an old overlay remains.
 
+### Agent `{"error":"Unknown agent"}`
+
+`--token=` was a placeholder (`TOKEN_DARI_KARTU`) or an old token after **Issue token** rotated it. Copy the install command from `/dashboard/agents` (hex + `--url=`). See [AGENT.md](AGENT.md).
+
 ### NovaCRM Test connection OK but no remote ticket number
 
 Connector enabled but auto-open ran **before** the secret was saved. Open again from Alerts, or fire a new alert. Local stubs may have empty `external_id`.
@@ -58,7 +62,7 @@ Alert secret in NETMON ≠ Alert secret on NovaCRM **Other** card, or secret sho
 
 ## Migrations
 
-Apply in order under `prisma/migrations/` (`0001_init` … `0006_notifications`). Production:
+Apply in order under `prisma/migrations/` (`0001_init` … `0009_ticker`). Production (via **worker** on the cloud image):
 
 ```bash
 npx prisma migrate deploy

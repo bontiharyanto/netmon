@@ -23,7 +23,7 @@ Sign in as admin or operator.
 | Inventory | `/dashboard/devices` | Hostname + IP (mono). Bulk mark / delete |
 | CMDB | `/dashboard/cmdb` | CI, asset tag, serial, owner |
 | Import | `/dashboard/import` | CSV / Excel inventory |
-| Agents | `/dashboard/agents` | Enroll token, heartbeat |
+| Agents | `/dashboard/agents` | Issue a token for an existing Inventory device, then install the host script. Up/down is mainly the 60s TCP poller; the agent is an optional push of CPU/RAM/disk. |
 
 ### Analyze
 

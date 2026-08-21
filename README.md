@@ -31,7 +31,7 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | [Ticketing](docs/TICKETING.md) | Helpdesk, NovaCRM, Jira |
 | [Channels](docs/CHANNELS.md) | Notify + Reply-To |
 | [AI](docs/AI.md) | Rules / local LLM / cloud |
-| [Agents](docs/AGENT.md) | Heartbeat enroll |
+| [Agents](docs/AGENT.md) | Token enroll, heartbeat, Unknown agent |
 | [API](docs/API.md) | Routes |
 | [Operations](docs/OPERATIONS.md) | Incidents and Prisma |
 
