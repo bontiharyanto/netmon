@@ -26,6 +26,8 @@ services:
       dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    ports:
+      - "${WEB_HOST_PORT:-3008}:3000"
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
