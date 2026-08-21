@@ -33,6 +33,9 @@ export function Header({
         )}
         <LocaleToggle />
         <ThemeToggle />
+        <Link href={role === "viewer" ? "/portal/help" : "/dashboard/help"} className="hidden text-xs text-muted-foreground hover:text-foreground sm:inline">
+          {t.nav.help}
+        </Link>
         <NotificationBell />
         <Link
           href={role === "viewer" ? "/portal/account" : "/dashboard/account"}

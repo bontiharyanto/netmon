@@ -2,43 +2,59 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/components/layout/locale-provider";
+import { searchHelp } from "@/lib/help";
 
-const DESTINATIONS = [
-  { q: "device", href: "/dashboard/devices" },
-  { q: "alert", href: "/dashboard/alerts" },
-  { q: "sla", href: "/dashboard/sla" },
-  { q: "ticket", href: "/dashboard/tickets" },
-  { q: "jira", href: "/dashboard/settings/tickets" },
-  { q: "novacrm", href: "/dashboard/settings/tickets" },
-  { q: "map", href: "/dashboard/topology" },
-  { q: "import", href: "/dashboard/import" },
-  { q: "report", href: "/dashboard/reports" },
-  { q: "user", href: "/dashboard/users" },
-  { q: "agent", href: "/dashboard/agents" },
-  { q: "channel", href: "/dashboard/settings" },
-  { q: "settings", href: "/dashboard/settings" },
-  { q: "slack", href: "/dashboard/settings" },
-  { q: "insight", href: "/dashboard/ai" },
-  { q: "ai", href: "/dashboard/settings/ai" },
-  { q: "knowledge", href: "/dashboard/knowledge" },
-  { q: "kb", href: "/dashboard/knowledge" },
-  { q: "portal", href: "/portal" },
-  { q: "admin", href: "/admin" },
-];
+const MODULES = [
+  { q: "help bantuan", href: "/dashboard/help", portal: "/portal/help", label: { en: "Help", id: "Bantuan" } },
+  { q: "device inventory", href: "/dashboard/devices", portal: "/portal/assets", label: { en: "Inventory", id: "Inventaris" } },
+  { q: "alert", href: "/dashboard/alerts", portal: "/portal", label: { en: "Alerts", id: "Alert" } },
+  { q: "sla", href: "/dashboard/sla", portal: "/portal", label: { en: "SLA", id: "SLA" } },
+  { q: "ticket novacrm", href: "/dashboard/tickets", portal: "/portal/tickets", label: { en: "Tickets", id: "Tiket" } },
+  { q: "topology map", href: "/dashboard/topology", portal: "/portal/topology", label: { en: "Topology", id: "Topologi" } },
+  { q: "import", href: "/dashboard/import", portal: "/portal/help", label: { en: "Import", id: "Impor" } },
+  { q: "agent token heartbeat", href: "/dashboard/agents", portal: "/portal/help", label: { en: "Agents", id: "Agen" } },
+  { q: "channel slack email", href: "/dashboard/settings", portal: "/portal/help", label: { en: "Channels", id: "Kanal" } },
+  { q: "knowledge kb", href: "/dashboard/knowledge", portal: "/portal/knowledge", label: { en: "Knowledge", id: "Pengetahuan" } },
+] as const;
 
 export function GlobalSearch() {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const { data } = useSession();
+  const viewer = data?.user.role === "viewer";
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
 
-  const matches = useMemo(
-    () => DESTINATIONS.filter((item) => item.q.includes(query.toLowerCase())).slice(0, 6),
-    [query],
-  );
+  const matches = useMemo(() => {
+    const q = query.toLowerCase().trim();
+    if (!q) return [];
+    const pages = MODULES.filter((item) => item.q.includes(q) || item.label.en.toLowerCase().includes(q) || item.label.id.toLowerCase().includes(q)).map(
+      (item) => ({
+        id: item.href,
+        href: viewer ? item.portal : item.href,
+        label: item.label[locale],
+      }),
+    );
+    const help = searchHelp(q, locale)
+      .slice(0, 5)
+      .map((article) => ({
+        id: article.id,
+        href: viewer ? "/portal/help" : `/dashboard/help?q=${encodeURIComponent(article.title[locale])}`,
+        label: article.title[locale],
+      }));
+    const seen = new Set<string>();
+    return [...pages, ...help]
+      .filter((item) => {
+        if (seen.has(item.href + item.label)) return false;
+        seen.add(item.href + item.label);
+        return true;
+      })
+      .slice(0, 8);
+  }, [query, locale, viewer]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -67,15 +83,19 @@ export function GlobalSearch() {
       />
       {open && query && (
         <div className="absolute z-30 mt-1 w-full rounded-md border border-border bg-card p-1 shadow-lg">
-          {matches.map((item) => (
-            <button
-              key={item.href}
-              className="flex w-full rounded px-3 py-2 text-left text-sm hover:bg-muted"
-              onMouseDown={() => router.push(item.href)}
-            >
-              {item.q}
-            </button>
-          ))}
+          {matches.length === 0 ? (
+            <p className="px-3 py-2 text-sm text-muted-foreground">{t.help.empty}</p>
+          ) : (
+            matches.map((item) => (
+              <button
+                key={item.id + item.href}
+                className="flex w-full rounded px-3 py-2 text-left text-sm hover:bg-muted"
+                onMouseDown={() => router.push(item.href)}
+              >
+                {item.label}
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-const PRISMA_GEN = "kb-idle-i18n-v1";
+const PRISMA_GEN = "indexes-help-v1";
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient; prismaGen?: string };
 
 function createClient() {

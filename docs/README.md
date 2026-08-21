@@ -16,6 +16,7 @@ Start here, then open the guide that matches the job.
 | [RBAC](RBAC.md) | Admin | Roles and permissions |
 | [User guide](USER-GUIDE.md) | NOC / customer | Daily console and portal |
 | [Monitor devices](MONITORING.md) | Operator | Register devices, poller vs agent, configuration |
+| [Database](DATABASE.md) | Engineer | Indexes, poller scan, metrics growth |
 | [Ticketing](TICKETING.md) | Admin / NOC | Helpdesk, Jira, **NovaCRM** |
 | [Channels](CHANNELS.md) | Admin | Email, Slack, WhatsApp, inbound replies |
 | [AI](AI.md) | Admin | Rules vs local LLM vs cloud |
