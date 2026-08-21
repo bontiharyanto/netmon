@@ -1,0 +1,34 @@
+# Attach NETMON web to an existing Traefik (the process already bound to :80/:443).
+# Do not start NETMON's own Traefik.
+#
+#   docker network ls
+#   docker ps --format '{{.Names}} {{.Ports}}' | grep -E '80|443'
+#
+# Then set in .env:
+#   TRAEFIK_NETWORK=novacrm_default          # name from `docker network ls`
+#   TRAEFIK_CERTRESOLVER=le                  # often `le` (NovaCRM) not `letsencrypt`
+#
+#   docker compose -f docker-compose.cloud.yml -f deploy/docker-compose.proxy.yml up -d
+
+services:
+  traefik:
+    profiles:
+      - unused
+
+  web:
+    networks:
+      - default
+      - edge
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-novacrm_default}"
+      - "traefik.http.routers.netmon.rule=Host(`netmon.click`) || Host(`www.netmon.click`) || HostRegexp(`^[a-z0-9-]+\\.netmon\\.click$`)"
+      - "traefik.http.routers.netmon.entrypoints=websecure"
+      - "traefik.http.routers.netmon.tls=true"
+      - "traefik.http.routers.netmon.tls.certresolver=${TRAEFIK_CERTRESOLVER:-le}"
+      - "traefik.http.services.netmon.loadbalancer.server.port=3000"
+
+networks:
+  edge:
+    external: true
+    name: ${TRAEFIK_NETWORK:-novacrm_default}

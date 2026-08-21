@@ -24,6 +24,8 @@ CNAME  www    netmon.click
 
 Wait for propagation (about five minutes). Firewall: **80**, **443**.
 
+On a **dedicated** host with free 80/443, Compose starts Traefik. On a **shared** VPS (port 80 already taken), keep NETMON on **3008** and put Nginx or the existing Traefik in front — see [deploy/EDGE.md](../deploy/EDGE.md).
+
 ### Server
 
 ```bash
