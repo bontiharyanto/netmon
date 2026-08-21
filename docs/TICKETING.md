@@ -2,9 +2,22 @@
 
 NETMON can keep tickets locally and/or open them in an external ITSM. Bidirectional sync uses outbound HTTP plus an inbound webhook per connector.
 
-Settings: **Admin → Settings → Ticketing** (`/dashboard/settings/tickets`).
+Settings: **Settings → Ticketing** (`/dashboard/settings/tickets`).
 
 Inbox: `/dashboard/tickets` (NOC) and `/portal/tickets` (viewer, read-only).
+
+## Helpdesk vs NovaCRM
+
+These are **two different connectors**. Renaming Helpdesk to “NovaCRM” does not send tickets to `novacrm.click`.
+
+| Row in Settings | Provider label | What it does |
+| --- | --- | --- |
+| NETMON Helpdesk | **NETMON Helpdesk** | Tickets **inside** NETMON only. No Base URL, no slug, no alert secret. |
+| NovaCRM | **NovaCRM** | Opens incidents on **novacrm.click**. Needs Base URL, tenant slug, and Alert webhook secret. |
+
+Add NovaCRM with the button **Add NovaCRM**. Do not edit the Helpdesk form and paste a NovaCRM secret there.
+
+To stop local auto-tickets: open the **NETMON Helpdesk** row, uncheck **Enable connector** and **Auto-open**, then **Save**. Leave the NovaCRM row enabled.
 
 ## Connectors
 
@@ -20,7 +33,9 @@ Inbox: `/dashboard/tickets` (NOC) and `/portal/tickets` (viewer, read-only).
 | osTicket | HTTP API |
 | Custom webhook | POST JSON to any URL |
 
-One saved connector per integration. Enable only after **Test connection** succeeds.
+One saved connector per integration. **Save** before **Test connection**. Enable only after the test succeeds.
+
+**Test connection** for NovaCRM only proves the tenant slug is reachable. It does **not** prove the Alert secret. A wrong secret still shows “reachable”, then ticket create fails with `Unauthorized webhook`.
 
 ## Auto-ticket rules
 
@@ -32,6 +47,20 @@ On each connector:
 - **Auto-open a ticket when a matching alert fires**
 
 Duplicates: one ticket per alert × connector. Recovered alerts add an outbound comment and can close the ticket.
+
+## Reply from NETMON (NOC)
+
+Admin or operator only. Viewers cannot reply.
+
+1. Open **Tickets** (`/dashboard/tickets`).
+2. Open a ticket that has a remote id (`INC…` for NovaCRM).
+3. In **Thread**, type the reply.
+4. **Send response** — comment is pushed to NovaCRM; ticket stays open.
+5. **Respond and resolve** — comment plus close on both sides.
+
+If `last_error` is set on the ticket, outbound sync failed (wrong secret, remote down). Fix the connector, then reply again.
+
+NovaCRM → NETMON comments only arrive if the connector **Inbound webhook** URL is pasted into a NovaCRM workflow. Laptop `localhost` inbound URLs are not reachable from NovaCRM cloud.
 
 ## NovaCRM (`novacrm.click`)
 
@@ -47,13 +76,17 @@ NETMON **pushes** incidents into NovaCRM. It does not need a new NovaCRM plugin 
 
 ### In NETMON
 
+Click **Add NovaCRM** (new row). Do not reuse Helpdesk.
+
 | Field | Value |
 | --- | --- |
 | Base URL | `https://novacrm.click` |
 | Tenant slug | NovaCRM tenant, lab is `novacrm-demo` |
 | Alert webhook secret | **The same** Alert secret |
 
-Save → Test connection → Enable. Optional: auto-open on firing alerts.
+Check **Enable connector**. **Save**, then **Test connection**. Optional: auto-open on firing alerts.
+
+`ENCRYPT_KEY` differs per environment. An encrypted secret copied from laptop Postgres **will not** decrypt on the VPS. Paste the plaintext secret again in production, then Save.
 
 NETMON calls:
 
@@ -68,11 +101,11 @@ Repeat alerts within 24 hours update the **same** NovaCRM ticket (fingerprint `n
 | From | To | Result |
 | --- | --- | --- |
 | NETMON on `localhost:3000` | NovaCRM cloud | Ticket create **works** |
+| NETMON on `https://demo.netmon.click` | NovaCRM cloud | Ticket create **works** (after secret is saved on the VPS) |
 | NovaCRM cloud | NETMON `localhost` inbound URL | **Does not work** |
+| NovaCRM cloud | `https://netmon.click/api/tickets/inbound/…` | Works if that URL is in a NovaCRM workflow |
 
-Smoke test (after secret is saved): Test connection, then open a ticket from a firing alert. A NovaCRM incident number (`INC…`) and URL appear on the NETMON ticket.
-
-Inbound webhook on the NETMON connector is for NovaCRM (or a workflow) to POST updates **back**. That URL must be a public `APP_URL`, not localhost.
+Smoke test: Test connection, then from a **firing** alert (or Tickets) open a ticket on the NovaCRM connector. The NETMON ticket must show `INC…` and **Open in ticketing system**. Empty `external_id` plus `Unauthorized webhook` means the secret on NETMON does not match NovaCRM.
 
 ## Other ITSMs
 

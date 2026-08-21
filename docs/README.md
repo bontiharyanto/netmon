@@ -10,7 +10,8 @@ Start here, then open the guide that matches the job.
 | Document | Audience | Use it for |
 | --- | --- | --- |
 | [Local laptop](LOCAL.md) | Engineer | Run NETMON on `localhost:3000` |
-| [Deployment](DEPLOYMENT.md) | Engineer | Cloud SaaS and on-premise |
+| [Deployment](DEPLOYMENT.md) | Engineer | Cloud SaaS, on-premise, **shared VPS** |
+| [Shared VPS edge](../deploy/EDGE.md) | Engineer | WorkPulse Caddy, port 3008, `netmon.click` |
 | [Architecture](ARCHITECTURE.md) | Engineer | Stack, poller, tenancy |
 | [RBAC](RBAC.md) | Admin | Roles and permissions |
 | [User guide](USER-GUIDE.md) | NOC / customer | Daily console and portal |

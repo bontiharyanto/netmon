@@ -23,7 +23,8 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | Guide | Contents |
 | --- | --- |
 | [Local laptop](docs/LOCAL.md) | Docker Postgres, seed, `localhost:3000` |
-| [Deployment](docs/DEPLOYMENT.md) | Cloud Traefik + on-prem port 3000 |
+| [Deployment](docs/DEPLOYMENT.md) | Cloud Traefik **or** shared VPS + Caddy |
+| [Shared VPS](deploy/EDGE.md) | `netmon.click` behind WorkPulse Caddy (port 3008) |
 | [Architecture](docs/ARCHITECTURE.md) | Poller, tenancy, layout |
 | [RBAC](docs/RBAC.md) | Roles, portal vs NOC |
 | [User guide](docs/USER-GUIDE.md) | Daily console |
@@ -49,7 +50,8 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | Bulk | `/dashboard/devices` | Multi-select |
 | Reports | `/dashboard/reports` | PDF |
 | Status page | `/status/[tenant]` | Public |
-| Security | `/dashboard/security` | TOTP 2FA |
+| Security | `/dashboard/security` | TOTP 2FA, idle timeout |
+| Account | `/dashboard/account` | Change own password |
 | Agents | `/dashboard/agents` | Token + heartbeat |
 | Boards | `/dashboard/dashboards` | Widget layouts |
 | Portal | `/portal` | Read-only customer console |
@@ -99,14 +101,17 @@ npm run worker
 
 ## Cloud SaaS
 
-DNS `A @` and `A *` → `103.190.214.224`. Then:
+DNS `A @` and `A *` → `103.190.214.224`. This VPS already uses WorkPulse Caddy on 80/443 — do not start a second Traefik. Runbook: [deploy/EDGE.md](deploy/EDGE.md).
 
 ```bash
-docker compose -f docker-compose.cloud.yml up -d --build
-docker compose -f docker-compose.cloud.yml exec web npx prisma migrate deploy
+export COMPOSE_BAKE=false
+docker compose -f docker-compose.cloud.yml build --progress=plain worker
+docker compose -f docker-compose.cloud.yml build --progress=plain web
+docker compose -f docker-compose.cloud.yml -f deploy/docker-compose.caddy.yml up -d postgres redis web worker
+docker compose -f docker-compose.cloud.yml exec worker npx prisma migrate deploy
 ```
 
-Details: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+Also: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 

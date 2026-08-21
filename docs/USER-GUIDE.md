@@ -41,11 +41,22 @@ Sign in as admin or operator.
 | Users | `/dashboard/users` | admin+ |
 | Settings | `/dashboard/settings` | Channels, Ticketing, AI |
 | Security | `/dashboard/security` | TOTP 2FA, session idle timeout |
+| Account | `/dashboard/account` | Change own password |
 | Platform | `/admin` | superadmin only |
 
-Header: global search (`⌘K` / `Ctrl+K`), **EN | ID**, theme, **notification bell**, portal link, sign out.
+Header: global search (`⌘K` / `Ctrl+K`), **EN | ID**, theme, **notification bell**, **Account** (change your own password), portal link, sign out.
 
 Idle timeout is configured on **Security** (Never / 15 / 30 / 60 minutes). No keyboard, click, or scroll signs the session out.
+
+Change the seed password on first login (**Account**). Superadmin on production is `admin@netmon.click`.
+
+### Tickets (reply)
+
+1. Open `/dashboard/tickets` and a row with a remote id (`INC…`).
+2. **Send response** posts the comment to NovaCRM (or the other ITSM).
+3. **Respond and resolve** also closes the ticket.
+
+Viewers on `/portal` can see tickets but cannot reply. Full connector notes: [TICKETING.md](TICKETING.md).
 
 ## Customer portal (`/portal`)
 

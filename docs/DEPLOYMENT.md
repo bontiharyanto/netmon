@@ -24,24 +24,31 @@ CNAME  www    netmon.click
 
 Wait for propagation (about five minutes). Firewall: **80**, **443**.
 
-On a **dedicated** host with free 80/443, Compose starts Traefik. On a **shared** VPS (port 80 already taken), keep NETMON on **3008** and put Nginx or the existing Traefik in front — see [deploy/EDGE.md](../deploy/EDGE.md).
+**This production VPS already runs WorkPulse Caddy on 80/443.** Do not start NETMON Traefik. Follow [deploy/EDGE.md](../deploy/EDGE.md) (port **3008**, compose overlay, Caddyfile).
 
-### Server
+On a **dedicated** host with free 80/443, Compose can start Traefik instead.
+
+### Server (shared VPS)
 
 ```bash
-git clone https://github.com/bontiharyanto/netmon.git
-cd netmon
-cp .env.example .env
-# fill production secrets — never commit .env
+cd ~/netmon/netmon
+git pull origin main
+# .env already filled — never commit it
 
-docker compose -f docker-compose.cloud.yml up -d --build
-docker compose -f docker-compose.cloud.yml exec web npx prisma migrate deploy
+export COMPOSE_BAKE=false
+export COMPOSE_PARALLEL_LIMIT=1
+docker compose -f docker-compose.cloud.yml build --progress=plain worker
+docker compose -f docker-compose.cloud.yml build --progress=plain web
+docker compose -f docker-compose.cloud.yml -f deploy/docker-compose.caddy.yml up -d postgres redis web worker
+docker compose -f docker-compose.cloud.yml exec worker npx prisma migrate deploy
 ```
+
+The `web` image is Next standalone and has **no Prisma CLI**. Migrate from **worker**. Do not `exec web npx prisma` (that downloads Prisma 7).
 
 Seed only on a **new** empty database:
 
 ```bash
-docker compose -f docker-compose.cloud.yml exec web npm run db:seed
+docker compose -f docker-compose.cloud.yml exec worker npm run db:seed
 ```
 
 Verify https://netmon.click and https://demo.netmon.click.
