@@ -2,6 +2,8 @@
 
 NOC: `/dashboard/agents` (permission `agent.enroll`).
 
+How devices get monitored overall (poller **and** agent): [MONITORING.md](MONITORING.md).
+
 An agent is **not a new device**. The device must already exist in Inventory. This page only issues a token and shows the install command. There is no Add button.
 
 ## What marks a device up or down

@@ -2,6 +2,8 @@
 
 UI chrome is English. Dark mode is default; light mode is in the header.
 
+**Putting devices under watch:** [MONITORING.md](MONITORING.md) (inventory, TCP poller, agents, firewall, worker).
+
 ## NOC console (`/dashboard`)
 
 Sign in as admin or operator.

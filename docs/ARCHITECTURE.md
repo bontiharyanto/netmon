@@ -37,6 +37,8 @@ flowchart LR
 
 ## Poller
 
+Operator handbook: [MONITORING.md](MONITORING.md).
+
 `worker/index.ts` repeats `pollAllDevices` every 60 seconds.
 
 For each device:

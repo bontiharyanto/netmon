@@ -28,6 +28,7 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | [Architecture](docs/ARCHITECTURE.md) | Poller, tenancy, layout |
 | [RBAC](docs/RBAC.md) | Roles, portal vs NOC |
 | [User guide](docs/USER-GUIDE.md) | Daily console |
+| [Monitor devices](docs/MONITORING.md) | Inventory, poller, agent, firewall, troubleshooting |
 | [Ticketing](docs/TICKETING.md) | Helpdesk, NovaCRM, Jira |
 | [Channels](docs/CHANNELS.md) | Notify + Reply-To |
 | [AI](docs/AI.md) | Rules / local LLM / cloud |
