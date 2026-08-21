@@ -6,8 +6,12 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 export const LOCALE_COOKIE = "netmon_locale";
 
-export const dictionaries = { en, id } as const;
-export type Dictionary = typeof en;
+type DeepString<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepString<T[K]>;
+};
+
+export type Dictionary = DeepString<typeof en>;
+export const dictionaries: Record<Locale, Dictionary> = { en, id };
 
 export function parseLocale(value?: string | null): Locale {
   return value === "id" ? "id" : "en";

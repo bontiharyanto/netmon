@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ export function TicketDetail({ id, canRespond }: { id: string; canRespond: boole
   const [body, setBody] = useState("");
   const [pending, setPending] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     const res = await fetch(`/api/tickets/${id}`);
     const data = await res.json();
     if (!res.ok) {
@@ -37,11 +37,11 @@ export function TicketDetail({ id, canRespond }: { id: string; canRespond: boole
       return;
     }
     setTicket(data.ticket);
-  }
+  }, [id]);
 
   useEffect(() => {
-    load();
-  }, [id]);
+    void load();
+  }, [load]);
 
   async function respond(close = false) {
     if (!body.trim()) return;
