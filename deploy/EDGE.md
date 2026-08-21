@@ -1,37 +1,29 @@
-# Shared VPS edge (port 80 already taken)
+# Shared VPS edge
 
-NETMON listens on **3008**. Do not start NETMON Traefik on this host.
-
-## 1. See what owns 80/443
+This host (`node-patrick01`) already publishes **80/443** via **WorkPulse Caddy** (`workpulse-prod-caddy-1`, network `workpulse-prod_edge`). NETMON stays on **3008**. Do not start NETMON Traefik.
 
 ```bash
-ss -tlnp | grep -E ':80 |:443 '
-docker ps --format 'table {{.Names}}\t{{.Ports}}'
-docker network ls
-```
-
-## 2A. Host Nginx
-
-```bash
-sudo cp deploy/nginx-netmon.click.conf /etc/nginx/sites-available/netmon.click
-sudo ln -sf /etc/nginx/sites-available/netmon.click /etc/nginx/sites-enabled/netmon.click
-sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d netmon.click -d www.netmon.click -d demo.netmon.click
-```
-
-HTTP challenge cannot issue `*.netmon.click`. Add each tenant host to certbot, or use DNS-01 for a wildcard.
-
-## 2B. Existing Docker Traefik (typical if NovaCRM is on this box)
-
-```bash
-# example network name — use the one from `docker network ls`
-echo 'TRAEFIK_NETWORK=novacrm_default' >> .env
-echo 'TRAEFIK_CERTRESOLVER=le' >> .env
+cd ~/netmon/netmon
+git pull origin main
 
 docker compose -f docker-compose.cloud.yml stop traefik
 docker compose -f docker-compose.cloud.yml rm -f traefik
 
-docker compose -f docker-compose.cloud.yml -f deploy/docker-compose.proxy.yml up -d
+docker compose -f docker-compose.cloud.yml -f deploy/docker-compose.caddy.yml up -d
 ```
 
-Let's Encrypt resolver name must match the running Traefik (`le` on NovaCRM, not `letsencrypt`).
+Find the Caddyfile:
+
+```bash
+docker inspect workpulse-prod-caddy-1 --format '{{range .Mounts}}{{.Source}} -> {{.Destination}}{{"\n"}}{{end}}'
+```
+
+Append `deploy/Caddyfile.netmon` to that file (usually a `Caddyfile` on disk), then:
+
+```bash
+docker exec workpulse-prod-caddy-1 caddy reload --config /etc/caddy/Caddyfile
+```
+
+If reload says the config path differs, use the `Destination` from inspect.
+
+Caddy will request Let's Encrypt for `netmon.click`, `www`, `demo`, `acme`, and `jakarta`. Extra tenant hosts must be added to the site list.

@@ -1,0 +1,22 @@
+# WorkPulse Caddy already binds :80/:443 on this VPS.
+# Join NETMON web to workpulse-prod_edge as alias `netmon-web`.
+#
+#   docker compose -f docker-compose.cloud.yml -f deploy/docker-compose.caddy.yml up -d
+# Then append deploy/Caddyfile.netmon to the WorkPulse Caddyfile and reload Caddy.
+
+services:
+  traefik:
+    profiles:
+      - unused
+
+  web:
+    networks:
+      default: {}
+      edge:
+        aliases:
+          - netmon-web
+
+networks:
+  edge:
+    external: true
+    name: workpulse-prod_edge
