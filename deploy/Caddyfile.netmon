@@ -4,9 +4,5 @@
 
 netmon.click, www.netmon.click, demo.netmon.click, acme.netmon.click, jakarta.netmon.click {
 	encode gzip
-	reverse_proxy netmon-web:3000 {
-		header_up Host {host}
-		header_up X-Forwarded-Proto {scheme}
-		header_up X-Forwarded-Host {host}
-	}
+	reverse_proxy netmon-web:3000
 }

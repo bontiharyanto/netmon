@@ -38,6 +38,7 @@ services:
       APP_URL: https://netmon.click
       IS_SAAS: "true"
       SERVER_IP: "103.190.214.224"
+      HOSTNAME: "0.0.0.0"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web.rule=Host(`netmon.click`) || HostRegexp(`{subdomain:[a-z0-9-]+}.netmon.click`)"
