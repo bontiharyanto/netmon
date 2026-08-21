@@ -21,30 +21,35 @@ export const authOptions: NextAuthOptions = {
         const password = credentials?.password ?? "";
         if (!email || !password) return null;
 
-        const found = await prisma.user.findUnique({
-          where: { email },
-          include: { tenant: true },
-        });
-        if (!found || found.tenant.status !== "active") return null;
+        try {
+          const found = await prisma.user.findUnique({
+            where: { email },
+            include: { tenant: true },
+          });
+          if (!found || found.tenant.status !== "active") return null;
 
-        const valid = await bcrypt.compare(password, found.password_hash);
-        if (!valid) return null;
+          const valid = await bcrypt.compare(password, found.password_hash);
+          if (!valid) return null;
 
-        if (found.totp_enabled) {
-          const otp = credentials?.otp ?? "";
-          if (!found.totp_secret || !authenticator.check(otp, found.totp_secret)) {
-            throw new Error("OTP_REQUIRED");
+          if (found.totp_enabled) {
+            const otp = credentials?.otp ?? "";
+            if (!found.totp_secret || !authenticator.check(otp, found.totp_secret)) {
+              throw new Error("OTP_REQUIRED");
+            }
           }
-        }
 
-        return {
-          id: found.id,
-          email: found.email,
-          name: found.name ?? found.email,
-          role: found.role,
-          tenantId: found.tenant_id,
-          tenantSlug: found.tenant.slug,
-        };
+          return {
+            id: found.id,
+            email: found.email,
+            name: found.name ?? found.email,
+            role: found.role,
+            tenantId: found.tenant_id,
+            tenantSlug: found.tenant.slug,
+          };
+        } catch (error) {
+          if (error instanceof Error && error.message === "OTP_REQUIRED") throw error;
+          throw new Error("DATABASE_UNAVAILABLE");
+        }
       },
     }),
   ],
@@ -57,18 +62,22 @@ export const authOptions: NextAuthOptions = {
       }
 
       const email = typeof token.email === "string" ? token.email.toLowerCase() : null;
-      const live = email
-        ? await prisma.user.findUnique({
-            where: { email },
-            include: { tenant: { select: { slug: true, status: true } } },
-          })
-        : null;
+      try {
+        const live = email
+          ? await prisma.user.findUnique({
+              where: { email },
+              include: { tenant: { select: { slug: true, status: true } } },
+            })
+          : null;
 
-      if (live?.tenant.status === "active") {
-        token.sub = live.id;
-        token.role = live.role;
-        token.tenantId = live.tenant_id;
-        token.tenantSlug = live.tenant.slug;
+        if (live?.tenant.status === "active") {
+          token.sub = live.id;
+          token.role = live.role;
+          token.tenantId = live.tenant_id;
+          token.tenantSlug = live.tenant.slug;
+        }
+      } catch {
+        // Keep the existing JWT if Postgres is briefly unreachable.
       }
 
       return token;

@@ -30,9 +30,11 @@ async function seedMetrics(deviceId: string, down: boolean) {
 async function main() {
   const password = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD ?? "ChangeMeNow!", 10);
 
+  await prisma.kb_article.deleteMany();
   await prisma.ticket_comment.deleteMany();
   await prisma.ticket.deleteMany();
   await prisma.ticket_connector.deleteMany();
+  await prisma.notification.deleteMany();
   await prisma.metric.deleteMany();
   await prisma.alert.deleteMany();
   await prisma.device_link.deleteMany();
@@ -104,8 +106,8 @@ async function main() {
         enabled: tenant.id === demo.id && kind.type === "email",
         config:
           kind.type === "email"
-            ? { host: "smtp.netmon.click", port: "587", from: "noreply@netmon.click", to: tenant.management_email }
-            : {},
+            ? { host: "smtp.netmon.click", port: "587", from: "noreply@netmon.click", to: tenant.management_email, reply_to: tenant.management_email }
+            : { reply_to: tenant.management_email },
         severities: kind.type === "sms" || kind.type === "pagerduty" ? "critical" : "critical,warning",
       })),
     });
@@ -180,6 +182,30 @@ async function main() {
       },
     }),
   ]);
+
+  const demoUsers = users.filter((user) => user.tenant_id === demo.id);
+  await prisma.notification.createMany({
+    data: demoUsers.flatMap((user) => [
+      {
+        tenant_id: demo.id,
+        user_id: user.id,
+        title: "CRITICAL ap-lt7-01 down",
+        body: "Access point on HQ Lantai-7 is not responding. Reply by email to ops@demo.netmon.click.",
+        kind: "alert",
+        severity: "critical",
+        created_at: hoursAgo(3),
+      },
+      {
+        tenant_id: demo.id,
+        user_id: user.id,
+        title: "Ticket received · NOC-1042",
+        body: "Jira accepted the incident. Reply from any channel uses the same Reply-To address.",
+        kind: "ticket",
+        severity: "critical",
+        created_at: hoursAgo(2.5),
+      },
+    ]),
+  });
 
   const demoDevices = [
     { hostname: "core-sw-01", ip: "10.10.1.1", type: "switch", status: "up", vendor: "Cisco", location: "DC-A / Rack-01" },
@@ -316,6 +342,21 @@ async function main() {
     ],
   });
 
+  await prisma.ticket_connector.create({
+    data: {
+      tenant_id: demo.id,
+      provider: "netmon",
+      name: "NETMON Helpdesk",
+      enabled: true,
+      direction: "both",
+      auto_open: true,
+      severities: "critical,warning",
+      inbound_token: `nm_${randomBytes(24).toString("hex")}`,
+      config: { events: "*" },
+      last_status: "local helpdesk ready",
+    },
+  });
+
   const jira = await prisma.ticket_connector.create({
     data: {
       tenant_id: demo.id,
@@ -421,6 +462,47 @@ async function main() {
         tenant_id: acme.id,
         name: "Acme Fiber NOC",
         layout: { widgets: [{ id: "a1", type: "availability" }, { id: "a2", type: "alerts" }] },
+      },
+    ],
+  });
+
+  await prisma.kb_article.createMany({
+    data: [
+      {
+        tenant_id: demo.id,
+        title: "Device down runbook",
+        slug: "device-down-runbook",
+        category: "runbook",
+        tags: "alert, device_down",
+        published: true,
+        body: [
+          "1. Confirm the alert on /dashboard/alerts.",
+          "2. Check neighbor status on topology.",
+          "3. If the site is isolated, open a NovaCRM or local ticket.",
+          "4. After recovery, verify SLA and close the ticket.",
+        ].join("\n"),
+      },
+      {
+        tenant_id: demo.id,
+        title: "VPN client cannot connect",
+        slug: "vpn-client-cannot-connect",
+        category: "network",
+        tags: "vpn, access",
+        published: true,
+        body: [
+          "Check the concentrator and last-seen on Inventory.",
+          "Confirm the user is on the correct profile.",
+          "If CPU is high for 15 minutes, scale or reboot the node in the change window.",
+        ].join("\n"),
+      },
+      {
+        tenant_id: demo.id,
+        title: "Internal: poller notes",
+        slug: "internal-poller-notes",
+        category: "general",
+        tags: "internal",
+        published: false,
+        body: "Draft. Worker must run for TCP checks. Do not publish until reviewed.",
       },
     ],
   });

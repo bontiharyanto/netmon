@@ -2,95 +2,76 @@
 
 **Your Network, Always On.**
 
-Enterprise-grade Network Monitoring System (NMS) for **on-premise** and **Cloud SaaS**. Monitor devices, alerts, SLA, and topology from a single dark-mode console — with full tenant isolation.
+Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One codebase. Dark-mode NOC, customer portal, ticketing (including [NovaCRM](https://novacrm.click)), and tenant isolation.
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=nextdotjs)](https://nextjs.org)
 [![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?logo=prisma)](https://www.prisma.io)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql)](https://www.postgresql.org)
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis)](https://redis.io)
-[![License](https://img.shields.io/badge/License-Proprietary-informational)](#license)
 
 | | |
 | --- | --- |
 | **Product** | [netmon.click](https://netmon.click) |
 | **Tenant URL** | `{slug}.netmon.click` |
-| **Cloud host** | `103.190.214.224` |
+| **Docs** | [docs/README.md](docs/README.md) |
 | **Tagline** | Click to Monitor Everything · Enterprise Network Visibility |
 
 ---
 
-## Why NETMON
+## Documentation
 
-Most NMS tools are either too heavy for a single site or too weak for multi-tenant SaaS. NETMON is built for both:
-
-- **Cloud SaaS** — wildcard DNS, Traefik + Let’s Encrypt, one cluster for every customer
-- **On-premise** — Docker Compose on the customer’s server, no Traefik required
-- **Tenant isolation** — every query is scoped by `tenant_id`
-- **Role-based access** — `superadmin`, `admin`, `operator`, `viewer`
+| Guide | Contents |
+| --- | --- |
+| [Local laptop](docs/LOCAL.md) | Docker Postgres, seed, `localhost:3000` |
+| [Deployment](docs/DEPLOYMENT.md) | Cloud Traefik + on-prem port 3000 |
+| [Architecture](docs/ARCHITECTURE.md) | Poller, tenancy, layout |
+| [RBAC](docs/RBAC.md) | Roles, portal vs NOC |
+| [User guide](docs/USER-GUIDE.md) | Daily console |
+| [Ticketing](docs/TICKETING.md) | Helpdesk, NovaCRM, Jira |
+| [Channels](docs/CHANNELS.md) | Notify + Reply-To |
+| [AI](docs/AI.md) | Rules / local LLM / cloud |
+| [Agents](docs/AGENT.md) | Heartbeat enroll |
+| [API](docs/API.md) | Routes |
+| [Operations](docs/OPERATIONS.md) | Incidents and Prisma |
 
 ---
 
 ## Features
 
-| # | Module | Path | Description |
-| ---: | --- | --- | --- |
-| 1 | Poller | worker | TCP health checks, metrics, auto-alert |
-| 2 | Alert | `/dashboard/alerts` | Firing / resolved events with severity |
-| 3 | SLA | `/dashboard/sla` | 30-day uptime per device |
-| 4 | Topology | `/dashboard/topology` | Live device-link map |
-| 5 | Import | `/dashboard/import` | CSV / Excel inventory upload |
-| 6 | Bulk actions | `/dashboard/devices` | Multi-select mark / delete |
-| 7 | Report PDF | `/dashboard/reports` | Operations report export |
-| 8 | Status page | `/status/[tenant]` | Public tenant status |
-| 9 | Security | `/dashboard/security` | TOTP 2FA + SSO draft |
-| 10 | Agent | `/dashboard/agents` | Token enroll + heartbeat API |
-| 11 | Dashboard builder | `/dashboard/dashboards` | JSON widget layouts |
-| 12 | Customer portal | `/portal` | Read-only viewer console |
-| 13 | Users | `/dashboard/users` | Invite and assign roles |
-| 14 | Onboarding | `/signup` | Self-serve tenant creation |
-| 15 | Superadmin | `/admin` | All tenants, plans, limits |
-
----
-
-## Architecture
-
-```mermaid
-flowchart LR
-  subgraph Edge
-    DNS["*.netmon.click"]
-    T["Traefik + Let's Encrypt"]
-  end
-
-  subgraph App
-    Web["Next.js 14"]
-    Worker["BullMQ poller"]
-  end
-
-  subgraph Data
-    PG[(PostgreSQL 16)]
-    RD[(Redis 7)]
-  end
-
-  DNS --> T --> Web
-  Worker --> PG
-  Worker --> RD
-  Web --> PG
-  Web --> RD
-  Agents["NETMON agents"] --> Web
-```
-
-**Stack:** Next.js 14 · Prisma · PostgreSQL 16 · Redis 7 · BullMQ · Traefik · Tailwind CSS · shadcn/ui · Framer Motion · NextAuth
+| Module | Path | Description |
+| --- | --- | --- |
+| Poller | worker | TCP check, metrics, auto-alert |
+| Alerts | `/dashboard/alerts` | Firing / resolved |
+| Tickets | `/dashboard/tickets` | Local helpdesk + remote ITSM |
+| SLA | `/dashboard/sla` | 30-day uptime |
+| Topology | `/dashboard/topology` | Live map + file upload |
+| Import | `/dashboard/import` | CSV / Excel |
+| Bulk | `/dashboard/devices` | Multi-select |
+| Reports | `/dashboard/reports` | PDF |
+| Status page | `/status/[tenant]` | Public |
+| Security | `/dashboard/security` | TOTP 2FA |
+| Agents | `/dashboard/agents` | Token + heartbeat |
+| Boards | `/dashboard/dashboards` | Widget layouts |
+| Portal | `/portal` | Read-only customer console |
+| Users | `/dashboard/users` | Invite + roles |
+| Signup | `/signup` | New tenant |
+| Superadmin | `/admin` | Platform |
+| CMDB | `/dashboard/cmdb` | Configuration items |
+| AI | `/dashboard/ai` | Copilot + insights |
+| Channels | `/dashboard/settings` | Email, Slack, WhatsApp, … |
+| Ticketing | `/dashboard/settings/tickets` | NovaCRM, Jira, ServiceNow, … |
 
 ---
 
 ## Quick start (local)
 
-Requires Node 20+, Docker, and npm.
+Requires Node 20+, Docker Desktop, and npm. Full notes: [docs/LOCAL.md](docs/LOCAL.md).
 
 ```bash
 git clone https://github.com/bontiharyanto/netmon.git
 cd netmon
 cp .env.example .env
+# set DATABASE_URL to 127.0.0.1 and NEXTAUTH_URL=http://localhost:3000
 
 docker compose -f docker-compose.dev.yml up -d
 npm install
@@ -106,9 +87,9 @@ Open [http://localhost:3000](http://localhost:3000)
 | Console | `admin@netmon.click` | `ChangeMeNow!` | superadmin |
 | Portal | `viewer@demo.netmon.click` | `ChangeMeNow!` | viewer |
 
-Change these before any public deploy.
+Change these before any public deploy. Keep Docker Desktop running or login will fail.
 
-Poller worker (separate process):
+Poller (second terminal):
 
 ```bash
 npm run worker
@@ -116,117 +97,21 @@ npm run worker
 
 ---
 
-## Deployment
+## Cloud SaaS
 
-### Cloud SaaS
-
-File: `docker-compose.cloud.yml`
-
-1. Point DNS at the server (`103.190.214.224`):
-
-   ```
-   A     @      103.190.214.224
-   A     *      103.190.214.224
-   CNAME www    netmon.click
-   ```
-
-2. Open firewall ports **80** and **443**.
-3. Copy `.env.example` → `.env` and set production secrets.
-4. Bring the stack up:
-
-   ```bash
-   docker compose -f docker-compose.cloud.yml up -d --build
-   docker compose -f docker-compose.cloud.yml exec web npx prisma migrate deploy
-   docker compose -f docker-compose.cloud.yml exec web npm run db:seed
-   ```
-
-5. Verify [https://netmon.click](https://netmon.click) and `https://demo.netmon.click`.
-
-Traefik issues a wildcard certificate for `*.netmon.click`.
-
-### On-premise
-
-File: `docker-compose.onprem.yml`
+DNS `A @` and `A *` → `103.190.214.224`. Then:
 
 ```bash
-docker compose -f docker-compose.onprem.yml up -d --build
+docker compose -f docker-compose.cloud.yml up -d --build
+docker compose -f docker-compose.cloud.yml exec web npx prisma migrate deploy
 ```
 
-Set `NEXTAUTH_URL` and `APP_URL` to the customer hostname, for example `https://nms.perusahaan.com`. The app listens on port **3000**.
-
----
-
-## Environment
-
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `REDIS_URL` | Redis for queues and cache |
-| `JWT_SECRET` | Token signing |
-| `ENCRYPT_KEY` | Application encryption key |
-| `NEXTAUTH_SECRET` | NextAuth session secret |
-| `NEXTAUTH_URL` | Public origin for auth callbacks |
-| `APP_URL` | Canonical product URL |
-| `IS_SAAS` | `true` for cloud, `false` for on-prem |
-| `SERVER_IP` | Cloud host IP |
-
-Never commit a real `.env`. Use `.env.example` as the contract.
-
----
-
-## Multi-tenancy and roles
-
-- Tenant slug is resolved from `Host`: `acme.netmon.click` → tenant `acme`
-- All data access is filtered with `where: { tenant_id }`
-- `viewer` is redirected to `/portal`
-- Only `superadmin` can open `/admin`
-
----
-
-## Project layout
-
-```
-app/            App Router pages and API routes
-components/     UI, layout, branding
-lib/            Auth, Prisma, poller, tenant isolation
-prisma/         Schema, migrations, seed
-worker/         BullMQ poller
-docker-compose.cloud.yml
-docker-compose.onprem.yml
-docker-compose.dev.yml
-```
-
----
-
-## Scripts
-
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Next.js development server |
-| `npm run build` | Production build |
-| `npm run start` | Production server |
-| `npm run worker` | Start the poller |
-| `npm run db:seed` | Seed demo tenant and users |
-| `npx prisma migrate deploy` | Apply migrations |
-
----
-
-## Agent heartbeat
-
-Enroll a device in **Agents**, then:
-
-```bash
-curl -s https://netmon.click/agent.sh | bash -s -- --token=AGENT_TOKEN
-```
-
-Heartbeat endpoint: `POST /api/agent/heartbeat`
+Details: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
 ## License
 
 Proprietary. All rights reserved by the NETMON project.
-
----
 
 **NETMON** — Enterprise Network Visibility · [netmon.click](https://netmon.click)

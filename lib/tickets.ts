@@ -5,6 +5,8 @@ import {
   createRemoteTicket,
   parseInboundPayload,
 } from "@/lib/ticket-remote";
+import { cfg } from "@/lib/ticket-providers";
+import { pushNotification } from "@/lib/notifications";
 
 export function newInboundToken() {
   return `nm_${randomBytes(24).toString("hex")}`;
@@ -20,6 +22,33 @@ function canInbound(direction: string) {
 
 function matchesSeverity(severities: string, severity: string) {
   return severities.split(",").map((s) => s.trim()).includes(severity);
+}
+
+function matchesEvent(config: unknown, event: string) {
+  const raw = cfg(config, "events", "*");
+  const list = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  return list.includes("*") || list.length === 0 || list.includes(event);
+}
+
+export async function ensureLocalHelpdesk(tenantId: string) {
+  const existing = await prisma.ticket_connector.findFirst({
+    where: { tenant_id: tenantId, provider: "netmon" },
+  });
+  if (existing) return existing;
+  return prisma.ticket_connector.create({
+    data: {
+      tenant_id: tenantId,
+      provider: "netmon",
+      name: "NETMON Helpdesk",
+      enabled: true,
+      direction: "both",
+      auto_open: true,
+      severities: "critical,warning",
+      config: { events: "*" },
+      inbound_token: newInboundToken(),
+      last_status: "local helpdesk ready",
+    },
+  });
 }
 
 export async function openTicketFromAlert(opts: {
@@ -70,11 +99,33 @@ export async function openTicketFromAlert(opts: {
     },
   });
 
+  if (connector.provider === "netmon") {
+    const local = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: {
+        external_id: `NM-${ticket.id.slice(-6).toUpperCase()}`,
+        last_synced_at: new Date(),
+        last_error: null,
+      },
+    });
+    await pushNotification({
+      tenantId: opts.tenantId,
+      title: `Ticket opened · ${local.external_id}`,
+      body: local.title,
+      kind: "ticket",
+      refId: local.id,
+      severity: local.priority,
+    });
+    return local;
+  }
+
   try {
     const remote = await createRemoteTicket(connector, {
       title,
       body,
       priority: ticket.priority,
+      fingerprint: `netmon:${ticket.id}`,
+      instance: alert.device.hostname,
     });
     return prisma.ticket.update({
       where: { id: ticket.id },
@@ -96,23 +147,40 @@ export async function openTicketFromAlert(opts: {
 
 export async function maybeOpenTicketsForAlert(alertId: string) {
   const alert = await prisma.alert.findUnique({ where: { id: alertId } });
-  if (!alert) return;
+  if (!alert || alert.status !== "firing") return [];
+  await ensureLocalHelpdesk(alert.tenant_id);
   const connectors = await prisma.ticket_connector.findMany({
     where: { tenant_id: alert.tenant_id, enabled: true, auto_open: true },
   });
+  const opened = [];
   for (const connector of connectors) {
     if (!canOutbound(connector.direction)) continue;
     if (!matchesSeverity(connector.severities, alert.severity)) continue;
+    if (!matchesEvent(connector.config, alert.event)) continue;
     try {
-      await openTicketFromAlert({
-        tenantId: alert.tenant_id,
-        alertId: alert.id,
-        connectorId: connector.id,
-        author: "netmon-poller",
-      });
+      opened.push(
+        await openTicketFromAlert({
+          tenantId: alert.tenant_id,
+          alertId: alert.id,
+          connectorId: connector.id,
+          author: "netmon-auto",
+        }),
+      );
     } catch {
       // keep polling even if ITSM is down
     }
+  }
+  return opened;
+}
+
+export async function autoOpenTicketsForTenant(tenantId: string) {
+  await ensureLocalHelpdesk(tenantId);
+  const firing = await prisma.alert.findMany({
+    where: { tenant_id: tenantId, status: "firing" },
+    select: { id: true },
+  });
+  for (const alert of firing) {
+    await maybeOpenTicketsForAlert(alert.id);
   }
 }
 
@@ -165,7 +233,10 @@ export async function addTicketComment(opts: {
   const nextStatus = opts.close ? "resolved" : ticket.status;
   if (opts.direction !== "inbound" && ticket.connector.enabled && canOutbound(ticket.connector.direction)) {
     try {
-      await commentRemoteTicket(ticket.connector, ticket.external_id, opts.body);
+      await commentRemoteTicket(ticket.connector, ticket.external_id, opts.body, {
+        fingerprint: `netmon:${ticket.id}`,
+        close: opts.close,
+      });
       await prisma.ticket.update({
         where: { id: ticket.id },
         data: { status: nextStatus, last_synced_at: new Date(), last_error: null },
@@ -246,6 +317,15 @@ export async function ingestInboundTicket(token: string, payload: unknown) {
       data: { status: "resolved", resolved_at: new Date() },
     });
   }
+
+  await pushNotification({
+    tenantId: connector.tenant_id,
+    title: parsed.event === "created" ? `Ticket received · ${ticket.external_id || ticket.id}` : `Ticket updated · ${ticket.external_id || ticket.id}`,
+    body: parsed.comment || ticket.title,
+    kind: "ticket",
+    refId: ticket.id,
+    severity: ticket.priority,
+  });
 
   return ticket;
 }

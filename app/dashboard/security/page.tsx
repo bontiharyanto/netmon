@@ -1,20 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "@/components/layout/locale-provider";
+import { IDLE_OPTIONS, parseIdleMinutes, type IdleMinutes } from "@/lib/idle";
+import { formatMinutes } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 export default function SecurityPage() {
+  const { t } = useI18n();
   const [qr, setQr] = useState<string | null>(null);
   const [secret, setSecret] = useState("");
+  const [idle, setIdle] = useState<IdleMinutes>(30);
+  const [savingIdle, setSavingIdle] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/security/session")
+      .then((res) => res.json())
+      .then((data) => setIdle(parseIdleMinutes(data.idle_minutes)))
+      .catch(() => undefined);
+  }, []);
 
   async function start2fa() {
     const res = await fetch("/api/security/2fa", { method: "POST" });
     const data = await res.json();
     if (!res.ok) {
-      toast.error(data.error ?? "Gagal memulai 2FA");
+      toast.error(data.error ?? "Unable to start 2FA");
       return;
     }
     setQr(data.qr);
@@ -28,21 +42,59 @@ export default function SecurityPage() {
       body: JSON.stringify({ token: formData.get("token") }),
     });
     if (!res.ok) {
-      toast.error("Kode 2FA salah");
+      toast.error("Invalid 2FA code");
       return;
     }
-    toast.success("2FA aktif");
+    toast.success("2FA enabled");
+  }
+
+  async function saveIdle(minutes: IdleMinutes) {
+    setIdle(minutes);
+    setSavingIdle(true);
+    const res = await fetch("/api/security/session", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idle_minutes: minutes }),
+    });
+    setSavingIdle(false);
+    if (!res.ok) {
+      toast.error("Unable to save session timeout");
+      return;
+    }
+    toast.success(t.session.saved);
   }
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Two-factor authentication</CardTitle>
-          <CardDescription>Authenticator app (TOTP)</CardDescription>
+          <CardTitle>{t.session.title}</CardTitle>
+          <CardDescription>{t.session.subtitle}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 sm:grid-cols-2">
+          {IDLE_OPTIONS.map((minutes) => (
+            <button
+              key={minutes}
+              type="button"
+              disabled={savingIdle}
+              onClick={() => saveIdle(minutes)}
+              className={cn(
+                "rounded-lg border px-3 py-2 text-left text-sm",
+                idle === minutes ? "border-primary/50 bg-primary/10" : "border-border hover:bg-muted/40",
+              )}
+            >
+              {minutes === 0 ? t.session.never : formatMinutes(t.session.minutes, minutes)}
+            </button>
+          ))}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t.security.totpTitle}</CardTitle>
+          <CardDescription>{t.security.totpHint}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button onClick={start2fa}>Generate secret</Button>
+          <Button onClick={start2fa}>{t.security.generate}</Button>
           {qr && (
             <div className="space-y-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -50,7 +102,7 @@ export default function SecurityPage() {
               <p className="font-mono text-xs">{secret}</p>
               <form action={confirm2fa} className="flex gap-2">
                 <Input name="token" placeholder="123456" />
-                <Button type="submit">Enable</Button>
+                <Button type="submit">{t.security.enable}</Button>
               </form>
             </div>
           )}
@@ -58,14 +110,16 @@ export default function SecurityPage() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>SSO</CardTitle>
-          <CardDescription>OIDC / SAML untuk tenant enterprise</CardDescription>
+          <CardTitle>{t.security.ssoTitle}</CardTitle>
+          <CardDescription>{t.security.ssoHint}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <p>Siapkan issuer, client id, dan ACS di sisi IdP. Callback: <span className="font-mono">https://netmon.click/api/auth/callback/oidc</span></p>
+          <p>
+            Callback: <span className="font-mono">https://netmon.click/api/auth/callback/oidc</span>
+          </p>
           <Input placeholder="OIDC issuer URL" />
           <Input placeholder="Client ID" />
-          <Button variant="outline">Save SSO draft</Button>
+          <Button variant="outline">{t.common.save} SSO</Button>
         </CardContent>
       </Card>
     </div>

@@ -16,6 +16,24 @@ export type TicketProvider = {
 
 export const TICKET_PROVIDERS: TicketProvider[] = [
   {
+    id: "netmon",
+    name: "NETMON Helpdesk",
+    blurb: "Local tickets inside NETMON. No external ITSM required. Used for auto-open.",
+    user_label: "Owner (optional)",
+    key_label: "Unused",
+    base_placeholder: "",
+    fields: [],
+  },
+  {
+    id: "novacrm",
+    name: "NovaCRM",
+    blurb: "Open incidents on novacrm.click from NETMON alerts. Uses the tenant alert webhook.",
+    user_label: "Tenant slug",
+    key_label: "Alert webhook secret",
+    base_placeholder: "https://novacrm.click",
+    fields: [],
+  },
+  {
     id: "jira",
     name: "Jira",
     blurb: "Create and comment on Jira issues. Receive Jira webhooks.",
@@ -82,6 +100,17 @@ export const TICKET_PROVIDERS: TicketProvider[] = [
     fields: [{ key: "auth_header", label: "Auth header name", placeholder: "Authorization" }],
   },
 ];
+
+export const AUTO_TICKET_EVENTS = [
+  { id: "*", label: "All firing events" },
+  { id: "device_down", label: "Device down" },
+  { id: "high_latency", label: "High latency" },
+  { id: "packet_loss", label: "Packet loss" },
+  { id: "disk_almost_full", label: "Disk almost full" },
+  { id: "interface_flapping", label: "Interface flapping" },
+] as const;
+
+export const AUTO_TICKET_SEVERITIES = ["critical", "warning"] as const;
 
 export const TICKET_DIRECTIONS = [
   { id: "both", label: "Receive and respond" },

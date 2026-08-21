@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -9,13 +9,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LocaleToggle } from "@/components/layout/locale-toggle";
+import { useI18n } from "@/components/layout/locale-provider";
 
 function LoginForm() {
+  const { t } = useI18n();
   const router = useRouter();
   const params = useSearchParams();
   const [otpNeeded, setOtpNeeded] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    if (params.get("idle")) setError(t.login.idleExpired);
+  }, [params, t.login.idleExpired]);
 
   async function onSubmit(formData: FormData) {
     setPending(true);
@@ -29,11 +36,15 @@ function LoginForm() {
     setPending(false);
     if (result?.error === "OTP_REQUIRED") {
       setOtpNeeded(true);
-      setError("Masukkan kode 2FA.");
+      setError(t.login.otpNeeded);
+      return;
+    }
+    if (result?.error === "DATABASE_UNAVAILABLE") {
+      setError(t.login.dbDown);
       return;
     }
     if (result?.error) {
-      setError("Email atau password salah.");
+      setError(t.login.badCreds);
       return;
     }
     router.push(params.get("callbackUrl") || "/dashboard");
@@ -42,28 +53,31 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <Logo size="lg" />
-        <CardTitle className="pt-2">Sign in to NETMON</CardTitle>
+        <div className="flex items-start justify-between gap-3">
+          <Logo size="lg" />
+          <LocaleToggle />
+        </div>
+        <CardTitle className="pt-2">{t.login.title}</CardTitle>
       </CardHeader>
       <CardContent>
         <form action={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t.login.email}</Label>
             <Input id="email" name="email" type="email" required defaultValue="admin@netmon.click" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t.login.password}</Label>
             <Input id="password" name="password" type="password" required />
           </div>
           {otpNeeded && (
             <div className="space-y-2">
-              <Label htmlFor="otp">Authenticator code</Label>
+              <Label htmlFor="otp">{t.login.otp}</Label>
               <Input id="otp" name="otp" inputMode="numeric" />
             </div>
           )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button className="w-full" disabled={pending}>
-            {pending ? "Signing in…" : "Sign in"}
+            {pending ? t.login.pending : t.login.submit}
           </Button>
         </form>
       </CardContent>

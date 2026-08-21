@@ -18,7 +18,9 @@ model tenant {
   device_limit      Int            @default(100)
   status            String         @default("active")
   plan              String         @default("cloud_basic")
+  idle_minutes      Int            @default(30)
   users             user[]
+  kb_articles       kb_article[]
   devices           device[]
   device_links      device_link[]
   alerts            alert[]
@@ -31,6 +33,7 @@ model tenant {
   ai_setting         ai_setting?
   ticket_connectors  ticket_connector[]
   tickets            ticket[]
+  notifications      notification[]
 }
 
 model user {
@@ -44,8 +47,9 @@ model user {
   totp_enabled  Boolean     @default(false)
   sso_provider  String?
   created_at    DateTime    @default(now())
-  tenant        tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  tenant        tenant         @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   audit_logs    audit_log[]
+  notifications notification[]
 
   @@index([tenant_id])
 }
@@ -261,6 +265,41 @@ model ticket_comment {
   ticket     ticket   @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
 
   @@index([ticket_id])
+}
+
+model notification {
+  id         String    @id @default(cuid())
+  tenant_id  String
+  user_id    String
+  title      String
+  body       String
+  kind       String    @default("alert")
+  ref_id     String?
+  severity   String    @default("warning")
+  read_at    DateTime?
+  created_at DateTime  @default(now())
+  tenant     tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user       user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, read_at])
+  @@index([tenant_id, created_at])
+}
+
+model kb_article {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  title       String
+  slug        String
+  body        String   @default("")
+  category    String   @default("general")
+  tags        String   @default("")
+  published   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  tenant      tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, slug])
+  @@index([tenant_id, published])
 }
 
 model ai_setting {

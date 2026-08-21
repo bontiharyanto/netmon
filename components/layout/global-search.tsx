@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "@/components/layout/locale-provider";
 
 const DESTINATIONS = [
   { q: "device", href: "/dashboard/devices" },
@@ -11,6 +12,7 @@ const DESTINATIONS = [
   { q: "sla", href: "/dashboard/sla" },
   { q: "ticket", href: "/dashboard/tickets" },
   { q: "jira", href: "/dashboard/settings/tickets" },
+  { q: "novacrm", href: "/dashboard/settings/tickets" },
   { q: "map", href: "/dashboard/topology" },
   { q: "import", href: "/dashboard/import" },
   { q: "report", href: "/dashboard/reports" },
@@ -21,12 +23,15 @@ const DESTINATIONS = [
   { q: "slack", href: "/dashboard/settings" },
   { q: "insight", href: "/dashboard/ai" },
   { q: "ai", href: "/dashboard/settings/ai" },
+  { q: "knowledge", href: "/dashboard/knowledge" },
+  { q: "kb", href: "/dashboard/knowledge" },
   { q: "portal", href: "/portal" },
   { q: "admin", href: "/admin" },
 ];
 
 export function GlobalSearch() {
   const router = useRouter();
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -57,7 +62,7 @@ export function GlobalSearch() {
         onKeyDown={(event) => {
           if (event.key === "Enter" && matches[0]) router.push(matches[0].href);
         }}
-        placeholder="Search devices, alerts, modules… ⌘K"
+        placeholder={t.search.placeholder}
         className="pl-9"
       />
       {open && query && (

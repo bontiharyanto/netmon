@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/rbac";
 import { CHANNEL_CATALOG } from "@/lib/channels";
 import { readSecret } from "@/lib/channel-store";
 import { writeAudit } from "@/lib/audit";
+import { deliverChannel } from "@/lib/notify";
 
 export async function POST(req: Request) {
   const gate = await requirePermission("channels.manage");
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
   });
   if (!row) return NextResponse.json({ error: "Save the channel first" }, { status: 400 });
 
-  const optional = new Set(["method", "version", "channel"]);
+  const optional = new Set(["method", "version", "channel", "reply_to"]);
   const empty = kind.fields.filter((field) => !optional.has(field.key) && !readSecret(row.config, field.key));
   if (empty.length) {
     const status = `missing ${empty[0].label}`;
@@ -31,27 +32,16 @@ export async function POST(req: Request) {
 
   const webhook = readSecret(row.config, "webhook_url") || readSecret(row.config, "url");
   let status = "configuration valid";
-  if (webhook?.startsWith("http")) {
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 4000);
-      const res = await fetch(webhook, {
-        method: "POST",
-        signal: controller.signal,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          source: "NETMON",
-          event: "channel_test",
-          tenant: gate.session.user.tenantSlug,
-          severity: "info",
-          message: "NETMON channel test",
-        }),
-      });
-      clearTimeout(timer);
-      status = res.ok ? `delivered (${res.status})` : `remote ${res.status}`;
-    } catch {
-      status = "endpoint unreachable — config saved";
-    }
+  try {
+    status = await deliverChannel(type, row, {
+      tenantId: gate.session.user.tenantId,
+      title: "NETMON channel test",
+      body: `Test from ${gate.session.user.tenantSlug}. Reply-To is configured on this channel.`,
+      severity: "info",
+      token: `alt_test`,
+    });
+  } catch {
+    status = webhook?.startsWith("http") ? "endpoint unreachable — config saved" : "configuration valid";
   }
 
   await prisma.notify_channel.update({

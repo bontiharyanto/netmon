@@ -3,22 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/layout/locale-provider";
 
 const LINKS = [
-  { href: "/portal", label: "Overview" },
-  { href: "/portal/assets", label: "Assets" },
-  { href: "/portal/cmdb", label: "CMDB" },
-  { href: "/portal/topology", label: "Topology" },
-  { href: "/portal/tickets", label: "Tickets" },
-  { href: "/portal/ai", label: "AI" },
+  { href: "/portal", key: "overview" as const },
+  { href: "/portal/assets", key: "assets" as const },
+  { href: "/portal/cmdb", key: "cmdb" as const },
+  { href: "/portal/topology", key: "topology" as const },
+  { href: "/portal/tickets", key: "tickets" as const },
+  { href: "/portal/knowledge", key: "knowledge" as const },
+  { href: "/portal/ai", key: "ai" as const },
 ];
 
 export function PortalNav() {
   const pathname = usePathname();
+  const { t } = useI18n();
   return (
     <nav className="flex flex-wrap gap-1">
       {LINKS.map((link) => {
-        const active = pathname === link.href;
+        const active = pathname === link.href || (link.href !== "/portal" && pathname.startsWith(link.href));
         return (
           <Link
             key={link.href}
@@ -28,7 +31,7 @@ export function PortalNav() {
               active ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            {link.label}
+            {t.portal[link.key]}
           </Link>
         );
       })}

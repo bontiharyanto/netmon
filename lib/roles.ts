@@ -21,6 +21,8 @@ export const PERMISSIONS = [
   "bulk.actions",
   "import.inventory",
   "channels.manage",
+  "kb.read",
+  "kb.write",
   "platform.admin",
   "noc.console",
 ] as const;
@@ -46,6 +48,8 @@ const MATRIX: Record<Role, Permission[]> = {
     "dashboard.builder",
     "bulk.actions",
     "import.inventory",
+    "kb.read",
+    "kb.write",
     "noc.console",
   ],
   viewer: [
@@ -55,6 +59,7 @@ const MATRIX: Record<Role, Permission[]> = {
     "sla.read",
     "alert.read",
     "ai.use",
+    "kb.read",
   ],
 };
 

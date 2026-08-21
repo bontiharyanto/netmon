@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { TICKET_DIRECTIONS, TICKET_PROVIDERS, type TicketProvider } from "@/lib/ticket-providers";
+import { AUTO_TICKET_EVENTS, AUTO_TICKET_SEVERITIES, TICKET_DIRECTIONS, TICKET_PROVIDERS, type TicketProvider } from "@/lib/ticket-providers";
 import { cn } from "@/lib/utils";
 
 type Connector = {
@@ -19,6 +19,7 @@ type Connector = {
   direction: "both" | "inbound" | "outbound";
   auto_open: boolean;
   severities: string[];
+  events?: string[];
   base_url: string;
   api_user: string;
   api_key: string;
@@ -37,6 +38,7 @@ type Draft = {
   direction: "both" | "inbound" | "outbound";
   auto_open: boolean;
   severities: string[];
+  events?: string[];
   base_url: string;
   api_user: string;
   api_key: string;
@@ -50,11 +52,12 @@ const EMPTY = (provider: TicketProvider): Draft => ({
   provider: provider.id,
   provider_name: provider.name,
   name: provider.name,
-  enabled: false,
+  enabled: provider.id === "netmon",
   direction: "both",
-  auto_open: false,
-  severities: ["critical"],
-  base_url: "",
+  auto_open: provider.id === "netmon",
+  severities: ["critical", "warning"],
+  events: ["*"],
+  base_url: provider.id === "novacrm" ? provider.base_placeholder : "",
   api_user: "",
   api_key: "",
   has_key: false,
@@ -145,8 +148,8 @@ export function TicketSettings() {
         <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">Administrator</p>
         <h1 className="mt-1 text-2xl font-semibold">Ticketing</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Receive tickets from Jira, ServiceNow, Zendesk, and others. Respond from NETMON, or open a ticket from an
-          alert.
+          Receive tickets from NovaCRM, Jira, ServiceNow, Zendesk, and others. Respond from NETMON, or open a ticket
+          from an alert.
         </p>
       </div>
 
@@ -199,25 +202,35 @@ export function TicketSettings() {
               <Field label="Display name">
                 <Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
               </Field>
-              <Field label="Base URL">
-                <Input
-                  className="font-mono"
-                  placeholder={provider.base_placeholder}
-                  value={draft.base_url}
-                  onChange={(e) => setDraft({ ...draft, base_url: e.target.value })}
-                />
-              </Field>
-              <Field label={provider.user_label}>
-                <Input value={draft.api_user} onChange={(e) => setDraft({ ...draft, api_user: e.target.value })} />
-              </Field>
-              <Field label={provider.key_label}>
-                <Input
-                  type="password"
-                  placeholder={draft.has_key ? "••••••••" : ""}
-                  value={draft.api_key}
-                  onChange={(e) => setDraft({ ...draft, api_key: e.target.value })}
-                />
-              </Field>
+              {draft.provider !== "netmon" && (
+                <>
+                  <Field label="Base URL">
+                    <Input
+                      className="font-mono"
+                      placeholder={provider.base_placeholder}
+                      value={draft.base_url}
+                      onChange={(e) => setDraft({ ...draft, base_url: e.target.value })}
+                    />
+                  </Field>
+                  <Field label={provider.user_label}>
+                    <Input value={draft.api_user} onChange={(e) => setDraft({ ...draft, api_user: e.target.value })} />
+                  </Field>
+                  <Field label={provider.key_label}>
+                    <Input
+                      type="password"
+                      placeholder={draft.has_key ? "••••••••" : ""}
+                      value={draft.api_key}
+                      onChange={(e) => setDraft({ ...draft, api_key: e.target.value })}
+                    />
+                  </Field>
+                </>
+              )}
+              {draft.provider === "novacrm" && (
+                <p className="md:col-span-2 text-xs text-muted-foreground">
+                  Tenant slug is the NovaCRM tenant (for example <span className="font-mono">novacrm-demo</span>).
+                  Secret comes from NovaCRM → Settings → Integrations → webhook alerts. Minimum 16 characters.
+                </p>
+              )}
               {provider.fields.map((field) => (
                 <Field key={field.key} label={field.label}>
                   <Input
@@ -247,6 +260,65 @@ export function TicketSettings() {
               ))}
             </div>
 
+            <div className="space-y-2">
+              <Label>Auto-ticket rules</Label>
+              <p className="text-xs text-muted-foreground">
+                Open a ticket only for firing alerts that match severity and event.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {AUTO_TICKET_SEVERITIES.map((sev) => {
+                  const on = draft.severities.includes(sev);
+                  return (
+                    <button
+                      key={sev}
+                      type="button"
+                      onClick={() =>
+                        setDraft({
+                          ...draft,
+                          severities: on ? draft.severities.filter((s) => s !== sev) : [...draft.severities, sev],
+                        })
+                      }
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs capitalize",
+                        on ? "border-primary/40 bg-primary/10 text-primary" : "border-border text-muted-foreground",
+                      )}
+                    >
+                      {sev}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {AUTO_TICKET_EVENTS.map((item) => {
+                  const selected = draft.events ?? ["*"];
+                  const on = selected.includes(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        if (item.id === "*") {
+                          setDraft({ ...draft, events: ["*"] });
+                          return;
+                        }
+                        const next = selected.filter((e) => e !== "*");
+                        setDraft({
+                          ...draft,
+                          events: on ? next.filter((e) => e !== item.id) : [...next, item.id],
+                        });
+                      }}
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs",
+                        on ? "border-primary/40 bg-primary/10 text-primary" : "border-border text-muted-foreground",
+                      )}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"
@@ -271,7 +343,9 @@ export function TicketSettings() {
                 <Label>Inbound webhook (receive)</Label>
                 <Input readOnly className="font-mono text-xs" value={draft.inbound_url} />
                 <p className="text-xs text-muted-foreground">
-                  Point Jira / ServiceNow / Zendesk webhooks here. NETMON accepts create, comment, and resolve events.
+                  {draft.provider === "novacrm"
+                    ? "Paste this URL into a NovaCRM workflow webhook to send ticket updates back to NETMON."
+                    : "Point Jira / ServiceNow / Zendesk webhooks here. NETMON accepts create, comment, and resolve events."}
                 </p>
               </div>
             )}

@@ -27,6 +27,7 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
       { key: "password", label: "Password", secret: true, type: "password" },
       { key: "from", label: "From", placeholder: "noreply@netmon.click" },
       { key: "to", label: "Recipients", placeholder: "noc@company.com, oncall@company.com" },
+      { key: "reply_to", label: "Reply-To", placeholder: "noc@company.com" },
     ],
   },
   {
@@ -37,6 +38,7 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
     fields: [
       { key: "webhook_url", label: "Webhook URL", placeholder: "https://hooks.slack.com/services/…", secret: true },
       { key: "channel", label: "Channel", placeholder: "#netmon-alerts" },
+      { key: "reply_to", label: "Reply-To email", placeholder: "noc@company.com" },
     ],
   },
   {
@@ -44,7 +46,10 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
     name: "Microsoft Teams",
     blurb: "Workflows / incoming webhook connector.",
     group: "Messaging",
-    fields: [{ key: "webhook_url", label: "Webhook URL", secret: true, placeholder: "https://outlook.office.com/webhook/…" }],
+    fields: [
+      { key: "webhook_url", label: "Webhook URL", secret: true, placeholder: "https://outlook.office.com/webhook/…" },
+      { key: "reply_to", label: "Reply-To email", placeholder: "noc@company.com" },
+    ],
   },
   {
     type: "telegram",
@@ -54,6 +59,7 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
     fields: [
       { key: "bot_token", label: "Bot token", secret: true, type: "password" },
       { key: "chat_id", label: "Chat ID", placeholder: "-1001234567890" },
+      { key: "reply_to", label: "Reply-To email", placeholder: "noc@company.com" },
     ],
   },
   {
@@ -66,6 +72,7 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
       { key: "token", label: "Access token", secret: true, type: "password" },
       { key: "from", label: "From (phone id)" },
       { key: "to", label: "To", placeholder: "+62812…" },
+      { key: "reply_to", label: "Reply-To email", placeholder: "noc@company.com" },
     ],
   },
   {
@@ -73,7 +80,10 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
     name: "Discord",
     blurb: "Server webhook for engineering rooms.",
     group: "Messaging",
-    fields: [{ key: "webhook_url", label: "Webhook URL", secret: true }],
+    fields: [
+      { key: "webhook_url", label: "Webhook URL", secret: true },
+      { key: "reply_to", label: "Reply-To email", placeholder: "noc@company.com" },
+    ],
   },
   {
     type: "webhook",
@@ -84,6 +94,7 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
       { key: "url", label: "Endpoint URL", placeholder: "https://hooks.company.com/netmon" },
       { key: "secret", label: "HMAC secret", secret: true, type: "password" },
       { key: "method", label: "Method", placeholder: "POST" },
+      { key: "reply_to", label: "Reply-To email", placeholder: "noc@company.com" },
     ],
   },
   {
@@ -96,6 +107,7 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
       { key: "auth_token", label: "Auth token", secret: true, type: "password" },
       { key: "from", label: "From number" },
       { key: "to", label: "To numbers", placeholder: "+62…, +62…" },
+      { key: "reply_to", label: "Reply-To email", placeholder: "noc@company.com" },
     ],
   },
   {
@@ -103,7 +115,10 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
     name: "PagerDuty",
     blurb: "Events API v2 routing key.",
     group: "On-call",
-    fields: [{ key: "routing_key", label: "Integration key", secret: true, type: "password" }],
+    fields: [
+      { key: "routing_key", label: "Integration key", secret: true, type: "password" },
+      { key: "reply_to", label: "Reply-To email", placeholder: "noc@company.com" },
+    ],
   },
   {
     type: "snmp",
@@ -115,6 +130,7 @@ export const CHANNEL_CATALOG: ChannelKind[] = [
       { key: "port", label: "Port", placeholder: "162", type: "number" },
       { key: "community", label: "Community", secret: true },
       { key: "version", label: "Version", placeholder: "v2c" },
+      { key: "reply_to", label: "Reply-To email", placeholder: "noc@company.com" },
     ],
   },
 ];

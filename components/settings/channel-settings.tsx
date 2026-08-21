@@ -122,8 +122,8 @@ export function ChannelSettings() {
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-primary">Administrator</p>
           <h1 className="mt-1 text-2xl font-semibold">Notification channels</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Configure every delivery path for alerts. Secrets are encrypted at rest. Enable a channel only after the
-            destination is verified.
+            Configure every delivery path for alerts. Each channel can set a Reply-To email so the NOC can answer from
+            inbox. Secrets are encrypted at rest.
           </p>
         </div>
         <span className="hidden items-center gap-2 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground sm:flex">

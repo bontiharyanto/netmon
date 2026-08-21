@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { writeAudit } from "@/lib/audit";
 import { openTicketFromAlert } from "@/lib/tickets";
+import { pushNotification } from "@/lib/notifications";
 
 const schema = z.object({
   alert_id: z.string(),
@@ -48,7 +49,19 @@ export async function POST(req: Request) {
       connectorId: parsed.data.connector_id,
       author: gate.session.user.email ?? "operator",
     });
-    await writeAudit(gate.session.user.tenantId, gate.session.user.id, `ticket.open:${ticket.id}`);
+    await writeAudit(
+      gate.session.user.tenantId,
+      gate.session.user.id,
+      `ticket.open:${ticket.id}`,
+    );
+    await pushNotification({
+      tenantId: gate.session.user.tenantId,
+      title: `Ticket opened · ${ticket.external_id || ticket.id}`,
+      body: ticket.title,
+      kind: "ticket",
+      refId: ticket.id,
+      severity: ticket.priority,
+    });
     return NextResponse.json({ ticket });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to open ticket";

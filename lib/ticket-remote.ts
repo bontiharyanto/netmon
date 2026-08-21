@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { decryptSecret, encryptSecret, isMasked } from "@/lib/crypto";
 import { cfg, getTicketProvider } from "@/lib/ticket-providers";
+import { novaCrmAlertBody, novaCrmContext, novaCrmHeaders, parseNovaCrmTicket } from "@/lib/ticket-novacrm";
 
 type Connector = {
   id: string;
@@ -54,11 +55,35 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 export async function testTicketConnector(connector: Connector) {
-  const base = origin(connector.base_url);
+  if (connector.provider === "netmon") {
+    return { ok: true, status: "NETMON Helpdesk ready (local auto-tickets)" };
+  }
+
   const secret = keyOf(connector);
-  if (!base) return { ok: false, status: "missing base URL" };
 
   try {
+    if (connector.provider === "novacrm") {
+      const nova = novaCrmContext(connector);
+      const { res, json } = await fetchJson(nova.health, {
+        headers: novaCrmHeaders(secret, nova.slug),
+      });
+      const row = asRecord(asRecord(json).data);
+      if (!res.ok) {
+        return {
+          ok: false,
+          status: res.status === 404 ? "NovaCRM tenant not found — check the slug" : `NovaCRM ${res.status}`,
+        };
+      }
+      if (row.status === "blocked") return { ok: false, status: "NovaCRM tenant is paused" };
+      return {
+        ok: true,
+        status: nova.slug ? `NovaCRM tenant ${nova.slug} reachable` : "NovaCRM reachable",
+      };
+    }
+
+    const base = origin(connector.base_url);
+    if (!base) return { ok: false, status: "missing base URL" };
+
     if (connector.provider === "jira") {
       const { res } = await fetchJson(`${base}/rest/api/2/myself`, {
         headers: { Authorization: basic(connector.api_user, secret) },
@@ -84,6 +109,24 @@ export async function testTicketConnector(connector: Connector) {
       });
       return { ok: res.ok, status: res.ok ? "Freshdesk authenticated" : `Freshdesk ${res.status}` };
     }
+    if (connector.provider === "novacrm") {
+      const nova = novaCrmContext(connector);
+      const { res, json } = await fetchJson(nova.health, {
+        headers: novaCrmHeaders(secret, nova.slug),
+      });
+      const row = asRecord(asRecord(json).data);
+      if (!res.ok) {
+        return {
+          ok: false,
+          status: res.status === 404 ? "NovaCRM tenant not found — check the slug" : `NovaCRM ${res.status}`,
+        };
+      }
+      if (row.status === "blocked") return { ok: false, status: "NovaCRM tenant is paused" };
+      return {
+        ok: true,
+        status: nova.slug ? `NovaCRM tenant ${nova.slug} reachable` : "NovaCRM reachable",
+      };
+    }
     if (connector.provider === "glpi") {
       const { res } = await fetchJson(`${base}/initSession`, {
         method: "POST",
@@ -106,10 +149,30 @@ export async function testTicketConnector(connector: Connector) {
 
 export async function createRemoteTicket(
   connector: Connector,
-  payload: { title: string; body: string; priority: string },
+  payload: { title: string; body: string; priority: string; fingerprint?: string; instance?: string },
 ): Promise<RemoteTicket> {
-  const base = origin(connector.base_url);
   const secret = keyOf(connector);
+
+  if (connector.provider === "novacrm") {
+    if (!secret) throw new Error("NovaCRM webhook secret is required");
+    const nova = novaCrmContext(connector);
+    const { res, json } = await fetchJson(nova.alerts, {
+      method: "POST",
+      headers: novaCrmHeaders(secret, nova.slug),
+      body: JSON.stringify(novaCrmAlertBody(payload)),
+    });
+    const created = parseNovaCrmTicket(json);
+    if (!res.ok || !created.external_id) {
+      const err = String(asRecord(json).error ?? `NovaCRM ${res.status}`);
+      throw new Error(err);
+    }
+    return {
+      external_id: created.external_id,
+      external_url: created.ticketId ? nova.ticketUrl(created.ticketId) : `${nova.host}/tickets`,
+    };
+  }
+
+  const base = origin(connector.base_url);
   if (!base) throw new Error("missing base URL");
 
   if (connector.provider === "jira") {
@@ -246,10 +309,36 @@ export async function createRemoteTicket(
   };
 }
 
-export async function commentRemoteTicket(connector: Connector, externalId: string, body: string) {
+export async function commentRemoteTicket(
+  connector: Connector,
+  externalId: string,
+  body: string,
+  extra?: { fingerprint?: string; close?: boolean },
+) {
+  if (!externalId && !extra?.fingerprint) return;
+  const secret = keyOf(connector);
+
+  if (connector.provider === "novacrm") {
+    if (!secret) return;
+    const nova = novaCrmContext(connector);
+    await fetchJson(nova.alerts, {
+      method: "POST",
+      headers: novaCrmHeaders(secret, nova.slug),
+      body: JSON.stringify(
+        novaCrmAlertBody({
+          title: extra?.close ? "NETMON alert recovered" : "NETMON update",
+          body,
+          priority: extra?.close ? "info" : "high",
+          fingerprint: extra?.fingerprint || externalId,
+          resolved: extra?.close,
+        }),
+      ),
+    });
+    return;
+  }
+
   if (!externalId) return;
   const base = origin(connector.base_url);
-  const secret = keyOf(connector);
 
   if (connector.provider === "jira") {
     await fetchJson(`${base}/rest/api/2/issue/${externalId}/comment`, {
@@ -291,16 +380,33 @@ export function parseInboundPayload(body: unknown) {
   const issueFields = asRecord(issue.fields);
   const zd = asRecord(raw.ticket);
   const sn = asRecord(raw.result ?? raw.incident);
+  const novaData = Array.isArray(raw.data) ? asRecord(raw.data[0]) : asRecord(raw.data);
 
   const event = String(raw.event ?? raw.webhookEvent ?? raw.type ?? "updated").toLowerCase();
   const title = String(
-    raw.title ?? raw.subject ?? raw.short_description ?? issueFields.summary ?? zd.subject ?? sn.short_description ?? "Inbound ticket",
+    raw.title ??
+      raw.subject ??
+      raw.short_description ??
+      issueFields.summary ??
+      zd.subject ??
+      sn.short_description ??
+      novaData.title ??
+      "Inbound ticket",
   );
   const text = String(
-    raw.body ?? raw.description ?? raw.comment ?? issueFields.description ?? zd.description ?? sn.description ?? "",
+    raw.body ?? raw.description ?? raw.comment ?? issueFields.description ?? zd.description ?? sn.description ?? novaData.message ?? "",
   );
   const external_id = String(
-    raw.external_id ?? raw.key ?? issue.key ?? zd.id ?? sn.number ?? sn.sys_id ?? raw.id ?? "",
+    raw.external_id ??
+      raw.key ??
+      issue.key ??
+      zd.id ??
+      sn.number ??
+      sn.sys_id ??
+      novaData.number ??
+      novaData.ticketId ??
+      raw.id ??
+      "",
   );
   const statusRaw = String(
     raw.status ?? asRecord(issueFields.status).name ?? zd.status ?? sn.state ?? "open",
@@ -359,6 +465,7 @@ export function publicConnector(
     direction: row.direction,
     auto_open: row.auto_open,
     severities: row.severities.split(",").filter(Boolean),
+    events: cfg(row.config, "events", "*").split(",").map((s) => s.trim()).filter(Boolean),
     base_url: row.base_url,
     api_user: row.api_user,
     api_key: row.api_key ? "••••••••" : "",

@@ -1,6 +1,7 @@
 import net from "net";
 import { prisma } from "@/lib/prisma";
 import { maybeCommentResolvedAlert, maybeOpenTicketsForAlert } from "@/lib/tickets";
+import { notifyAlert } from "@/lib/notify";
 
 function tcpCheck(ip: string, port = 80, timeoutMs = 2500) {
   return new Promise<boolean>((resolve) => {
@@ -70,13 +71,34 @@ export async function pollDevice(deviceId: string) {
         },
       });
       await maybeOpenTicketsForAlert(alert.id);
+      await notifyAlert({
+        tenantId: device.tenant_id,
+        alertId: alert.id,
+        title: `CRITICAL ${device.hostname} down`,
+        body: `${device.hostname} (${device.ip}) is not responding. Reply by email using the Reply-To on your channels.`,
+        severity: "critical",
+      });
     }
   } else {
+    const firing = await prisma.alert.findMany({
+      where: { device_id: device.id, event: "device_down", status: "firing" },
+      select: { id: true },
+    });
     await prisma.alert.updateMany({
       where: { device_id: device.id, event: "device_down", status: "firing" },
       data: { status: "resolved", resolved_at: new Date() },
     });
     await maybeCommentResolvedAlert(device.id, "device_down");
+    if (firing[0]) {
+      await notifyAlert({
+        tenantId: device.tenant_id,
+        alertId: firing[0].id,
+        title: `${device.hostname} recovered`,
+        body: `${device.hostname} (${device.ip}) is responding again.`,
+        severity: "info",
+        recovered: true,
+      });
+    }
   }
 
   return { id: device.id, status };

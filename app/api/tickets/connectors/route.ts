@@ -5,7 +5,7 @@ import { requirePermission } from "@/lib/rbac";
 import { writeAudit } from "@/lib/audit";
 import { TICKET_PROVIDERS, getTicketProvider, inboundWebhookUrl } from "@/lib/ticket-providers";
 import { mergeConnectorKey, publicConnector } from "@/lib/ticket-remote";
-import { newInboundToken } from "@/lib/tickets";
+import { newInboundToken, ensureLocalHelpdesk } from "@/lib/tickets";
 
 const schema = z.object({
   id: z.string().optional(),
@@ -19,13 +19,21 @@ const schema = z.object({
   api_user: z.string().optional(),
   api_key: z.string().optional(),
   config: z.record(z.string()).optional(),
+  events: z.array(z.string()).optional(),
   rotate_token: z.boolean().optional(),
 });
+
+function withEvents(config: Record<string, string> | undefined, events?: string[]) {
+  const next = { ...(config ?? {}) };
+  if (events?.length) next.events = events.join(",");
+  return next;
+}
 
 export async function GET() {
   try {
     const gate = await requirePermission("channels.manage");
     if (gate.error || !gate.session) return gate.error;
+    await ensureLocalHelpdesk(gate.session.user.tenantId);
     const rows = await prisma.ticket_connector.findMany({
       where: { tenant_id: gate.session.user.tenantId },
       orderBy: { created_at: "asc" },
@@ -56,12 +64,12 @@ export async function POST(req: Request) {
         name: parsed.data.name,
         enabled: parsed.data.enabled ?? false,
         direction: parsed.data.direction ?? "both",
-        auto_open: parsed.data.auto_open ?? false,
-        severities: (parsed.data.severities ?? ["critical"]).join(","),
+        auto_open: parsed.data.auto_open ?? provider.id === "netmon",
+        severities: (parsed.data.severities ?? ["critical", "warning"]).join(","),
         base_url: parsed.data.base_url ?? "",
         api_user: parsed.data.api_user ?? "",
         api_key: mergeConnectorKey(null, parsed.data.api_key),
-        config: parsed.data.config ?? {},
+        config: withEvents(parsed.data.config, parsed.data.events),
         inbound_token: newInboundToken(),
       },
     });
@@ -96,7 +104,10 @@ export async function PATCH(req: Request) {
         base_url: parsed.data.base_url ?? existing.base_url,
         api_user: parsed.data.api_user ?? existing.api_user,
         api_key: mergeConnectorKey(existing.api_key, parsed.data.api_key),
-        config: parsed.data.config ?? (existing.config as object),
+        config: withEvents(
+          parsed.data.config ?? ((existing.config as Record<string, string>) || {}),
+          parsed.data.events,
+        ),
         inbound_token: parsed.data.rotate_token ? newInboundToken() : existing.inbound_token,
       },
     });
