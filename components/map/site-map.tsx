@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { groupDevicesByCity } from "@/lib/geo/indonesia-cities";
@@ -20,10 +21,10 @@ export type SiteDevice = {
 
 const IndonesiaMap = dynamic(() => import("./indonesia-map").then((m) => m.IndonesiaMap), {
   ssr: false,
-  loading: () => <div className="h-full min-h-[520px] rounded-lg bg-muted/40" />,
+  loading: () => <div className="h-full min-h-[320px] rounded-lg bg-muted/40" />,
 });
 
-export function SiteMap({ devices }: { devices: SiteDevice[] }) {
+export function SiteMap({ devices, embed = false }: { devices: SiteDevice[]; embed?: boolean }) {
   const { t } = useI18n();
   const { sites, unmapped } = useMemo(() => groupDevicesByCity(devices), [devices]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -36,12 +37,19 @@ export function SiteMap({ devices }: { devices: SiteDevice[] }) {
           <CardTitle className="text-base">
             {t.map.title} · {sites.length} {t.map.cities}
           </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            {devices.length - unmapped.length}/{devices.length} {t.map.placed}
-          </p>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span>
+              {devices.length - unmapped.length}/{devices.length} {t.map.placed}
+            </span>
+            {embed && (
+              <Link href="/dashboard/map" className="text-primary hover:underline">
+                Full map
+              </Link>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="h-[520px] lg:h-[560px]">
+          <div className={embed ? "h-[380px] lg:h-[420px]" : "h-[520px] lg:h-[560px]"}>
             <IndonesiaMap sites={sites} selectedSlug={selected} onSelect={setSelected} />
           </div>
         </CardContent>
@@ -52,7 +60,7 @@ export function SiteMap({ devices }: { devices: SiteDevice[] }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-base">{t.map.cities}</CardTitle>
           </CardHeader>
-          <CardContent className="max-h-[360px] space-y-1 overflow-y-auto p-2">
+          <CardContent className={cn("space-y-1 overflow-y-auto p-2", embed ? "max-h-[280px]" : "max-h-[360px]")}>
             {sites.length === 0 && <p className="px-2 py-4 text-sm text-muted-foreground">{t.map.empty}</p>}
             {sites.map(({ city, devices: rows }) => {
               const down = rows.filter((d) => d.status === "down").length;

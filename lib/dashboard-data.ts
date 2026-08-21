@@ -110,6 +110,7 @@ export async function getDashboardOverview(tenantId: string) {
       type: d.type,
       status: d.status,
       location: d.location,
+      city: d.city,
       vendor: d.vendor,
       last_seen: d.last_seen?.toISOString() ?? null,
       sla: d.sla?.uptime_30d ?? 100,

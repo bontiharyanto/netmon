@@ -28,6 +28,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import type { DashboardOverview } from "@/lib/dashboard-data";
+import { SiteMap } from "@/components/map/site-map";
 import { cn } from "@/lib/utils";
 
 const fade = { duration: 0.2 };
@@ -150,6 +151,8 @@ export function NocBoard({ data }: { data: DashboardOverview }) {
           tone={kpis.sla30d < 99 ? "warn" : "ok"}
         />
       </div>
+
+      <SiteMap devices={devices} embed />
 
       <div className="grid gap-4 xl:grid-cols-3">
         <Card className="xl:col-span-2">

@@ -12,7 +12,7 @@ Sign in as admin or operator.
 
 | Page | Path | What to do |
 | --- | --- | --- |
-| Overview | `/dashboard` | KPI cards, live estate |
+| Overview | `/dashboard` | KPI cards, Indonesia site map, live estate |
 | Alerts | `/dashboard/alerts` | Firing / resolved. Open a ticket from a firing alert |
 | Tickets | `/dashboard/tickets` | Inbox for local helpdesk and remote ITSM |
 | Topology | `/dashboard/topology` | Live links; upload CSV / Excel / JSON. Download filled CSV, Excel, or PDF. |
