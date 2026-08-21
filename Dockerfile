@@ -10,6 +10,8 @@ RUN apk add --no-cache libc6-compat openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=1536"
+ENV DATABASE_URL="postgresql://nms:nms@127.0.0.1:5432/nms"
 RUN npx prisma generate && npm run build
 
 FROM node:20-alpine AS runner

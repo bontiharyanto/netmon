@@ -4,5 +4,6 @@ RUN apk add --no-cache libc6-compat openssl
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
+ENV DATABASE_URL="postgresql://nms:nms@127.0.0.1:5432/nms"
 RUN npx prisma generate
 CMD ["npx", "tsx", "worker/index.ts"]

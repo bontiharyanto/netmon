@@ -7,7 +7,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "NETMON — Your Network, Always On",
   description: "Enterprise network visibility. On-premise and Cloud SaaS.",
-  metadataBase: new URL(process.env.APP_URL ?? "https://netmon.click"),
+  metadataBase: new URL(process.env.APP_URL || "https://netmon.click"),
   icons: {
     icon: "/brand/net-mark.svg",
     apple: "/brand/net-logo.png",
