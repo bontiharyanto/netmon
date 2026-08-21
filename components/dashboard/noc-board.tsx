@@ -31,6 +31,17 @@ import { cn } from "@/lib/utils";
 
 const fade = { duration: 0.2 };
 
+const chartTooltip = {
+  contentStyle: {
+    background: "hsl(var(--card))",
+    border: "1px solid hsl(var(--border))",
+    borderRadius: 8,
+    color: "hsl(var(--foreground))",
+  },
+  labelStyle: { color: "hsl(var(--foreground))" },
+  itemStyle: { color: "hsl(var(--foreground))" },
+};
+
 function timeAgo(iso: string) {
   const delta = Date.now() - new Date(iso).getTime();
   const mins = Math.max(1, Math.round(delta / 60000));
@@ -158,9 +169,7 @@ export function NocBoard({ data }: { data: DashboardOverview }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(222 20% 18%)" />
                 <XAxis dataKey="t" tick={{ fill: "#94a3b8", fontSize: 11 }} />
                 <YAxis domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{ background: "#0b1220", border: "1px solid #1f2a3d", borderRadius: 8 }}
-                />
+                <Tooltip {...chartTooltip} />
                 <Area type="monotone" dataKey="cpu" stroke="#00E5C3" fill="url(#cpu)" strokeWidth={2} />
                 <Area type="monotone" dataKey="ram" stroke="#38BDF8" fill="url(#ram)" strokeWidth={2} />
                 <Area type="monotone" dataKey="disk" stroke="#F59E0B" fill="transparent" strokeWidth={2} />
@@ -182,9 +191,7 @@ export function NocBoard({ data }: { data: DashboardOverview }) {
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{ background: "#0b1220", border: "1px solid #1f2a3d", borderRadius: 8 }}
-                />
+                <Tooltip {...chartTooltip} />
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-[-12px] flex flex-wrap justify-center gap-3 text-xs text-muted-foreground">
