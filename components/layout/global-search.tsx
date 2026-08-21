@@ -39,7 +39,7 @@ export function GlobalSearch() {
         label: item.label[locale],
       }),
     );
-    const help = searchHelp(q, locale)
+    const help = searchHelp(q)
       .slice(0, 5)
       .map((article) => ({
         id: article.id,

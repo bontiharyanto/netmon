@@ -15,7 +15,7 @@ export function HelpCenter() {
   const { data } = useSession();
   const initial = useSearchParams().get("q") ?? "";
   const [query, setQuery] = useState(initial);
-  const articles = useMemo(() => searchHelp(query, locale), [query, locale]);
+  const articles = useMemo(() => searchHelp(query), [query]);
 
   return (
     <div className="space-y-6">

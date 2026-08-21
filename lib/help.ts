@@ -152,7 +152,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
   },
 ];
 
-export function searchHelp(query: string, locale: Locale) {
+export function searchHelp(query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return HELP_ARTICLES;
   return HELP_ARTICLES.filter((article) => {
