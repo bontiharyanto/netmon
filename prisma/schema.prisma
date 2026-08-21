@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model tenant {
+  id                String         @id @default(cuid())
+  name              String
+  slug              String         @unique
+  domain            String
+  management_email  String
+  brand_color       String?        @default("#00E5C3")
+  logo_url          String?
+  device_limit      Int            @default(100)
+  status            String         @default("active")
+  plan              String         @default("cloud_basic")
+  users             user[]
+  devices           device[]
+  device_links      device_link[]
+  alerts            alert[]
+  dashboards        dashboard[]
+  audit_logs        audit_log[]
+  subscription      subscription?
+  agents            agent[]
+}
+
+model user {
+  id            String      @id @default(cuid())
+  tenant_id     String
+  email         String      @unique
+  name          String?
+  password_hash String
+  role          String      @default("viewer")
+  totp_secret   String?
+  totp_enabled  Boolean     @default(false)
+  sso_provider  String?
+  created_at    DateTime    @default(now())
+  tenant        tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  audit_logs    audit_log[]
+
+  @@index([tenant_id])
+}
+
+model device {
+  id            String        @id @default(cuid())
+  tenant_id     String
+  hostname      String
+  ip            String
+  type          String
+  status        String        @default("unknown")
+  vendor        String?
+  location      String?
+  last_seen     DateTime?
+  created_at    DateTime      @default(now())
+  tenant        tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  alerts        alert[]
+  sla           sla?
+  metrics       metric[]
+  links_from    device_link[] @relation("from_device")
+  links_to      device_link[] @relation("to_device")
+  agent         agent?
+
+  @@unique([tenant_id, hostname])
+  @@unique([ip])
+  @@index([tenant_id])
+}
+
+model device_link {
+  id             String  @id @default(cuid())
+  tenant_id      String
+  from_device_id String
+  to_device_id   String
+  status         String  @default("up")
+  tenant         tenant  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  from_device    device  @relation("from_device", fields: [from_device_id], references: [id], onDelete: Cascade)
+  to_device      device  @relation("to_device", fields: [to_device_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+}
+
+model alert {
+  id         String   @id @default(cuid())
+  tenant_id  String
+  device_id  String
+  event      String
+  status     String   @default("firing")
+  severity   String   @default("critical")
+  created_at DateTime @default(now())
+  resolved_at DateTime?
+  tenant     tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  device     device   @relation(fields: [device_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+  @@index([device_id])
+}
+
+model sla {
+  id         String @id @default(cuid())
+  device_id  String @unique
+  uptime_30d Float  @default(100)
+  device     device @relation(fields: [device_id], references: [id], onDelete: Cascade)
+}
+
+model metric {
+  id           String   @id @default(cuid())
+  device_id    String
+  ts           DateTime @default(now())
+  cpu_percent  Float
+  ram_percent  Float
+  disk_percent Float
+  device       device   @relation(fields: [device_id], references: [id], onDelete: Cascade)
+
+  @@index([device_id, ts])
+}
+
+model dashboard {
+  id        String @id @default(cuid())
+  tenant_id String
+  name      String
+  layout    Json
+  tenant    tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+}
+
+model audit_log {
+  id         String   @id @default(cuid())
+  tenant_id  String
+  user_id    String
+  action     String
+  created_at DateTime @default(now())
+  tenant     tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+}
+
+model subscription {
+  id        String @id @default(cuid())
+  tenant_id String @unique
+  status    String
+  tenant    tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+}
+
+model agent {
+  id         String    @id @default(cuid())
+  tenant_id  String
+  device_id  String    @unique
+  token      String    @unique
+  version    String    @default("1.0.0")
+  last_seen  DateTime?
+  status     String    @default("pending")
+  tenant     tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  device     device    @relation(fields: [device_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+}

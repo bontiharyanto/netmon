@@ -1,0 +1,120 @@
+# ==========================================
+# PROJECT: NETMON - NETWORK MONITORING SYSTEM
+# DOMAIN: https://netmon.click
+# STACK: Next.js 14 + Prisma + PostgreSQL + Redis + BullMQ + Tailwind + shadcn + framer-motion
+# GOAL: NMS Multi-Tenant Pro. Bisa ON-PREMISE & CLOUD SAAS
+# ==========================================
+
+## 1. BRANDING WAJIB
+1. NAMA PRODUK: NETMON
+2. DOMAIN UTAMA: https://netmon.click
+3. SUBDOMAIN CUSTOMER: {tenant}.netmon.click
+4. WARNA BRAND: Primary #, Background #
+5. LOGO: Text "NETMON" dengan icon radar/pulse
+
+## 2. DESIGN SYSTEM & UI/UX
+1. THEME: Default DARK MODE. Toggle di header
+2. FONT: Inter + JetBrains Mono
+3. KOMPONEN: shadcn/ui. Animasi framer-motion 200ms
+4. LAYOUT: Sidebar collapsible + Header sticky + Global Search
+
+## 3. DATABASE SCHEMA PRISMA - FINAL
+model tenant {
+ id String @id @default(cuid())
+ name String
+ slug String @unique // ini jadi subdomain. ex: acme.netmon.click
+ domain String
+ management_email String
+ brand_color String? @default("#")
+ logo_url String?
+ device_limit Int @default(100)
+ status String @default("active")
+ plan String @default("cloud_basic")
+}
+model user {
+ id String @id @default(cuid())
+ tenant_id String
+ email String @unique
+ name String?
+ role String @default("viewer") // superadmin, admin, operator, viewer
+}
+model device {
+ id String @id @default(cuid())
+ tenant_id String
+ hostname String
+ ip String
+ type String
+ status String @default("unknown")
+ @@unique([tenant_id, hostname])
+ @@unique([ip])
+}
+model device_link { id String @id @default(cuid()) tenant_id String from_device_id String to_device_id String status String @default("up") }
+model alert { id String @id @default(cuid()) tenant_id String device_id String event String status String @default("firing") severity String @default("critical") created_at DateTime @default(now()) }
+model sla { id String @id @default(cuid()) device_id String @unique uptime_30d Float @default(100) }
+model metric { id String @id @default(cuid()) device_id String ts DateTime @default(now()) cpu_percent Float ram_percent Float disk_percent Float }
+model dashboard { id String @id @default(cuid()) tenant_id String name String layout Json }
+model audit_log { id String @id @default(cuid()) tenant_id String user_id String action String created_at DateTime @default(now()) }
+model subscription { id String @id @default(cuid()) tenant_id String @unique status String }
+
+## 4. DEPLOYMENT MODES
+### MODE A: ON-PREMISE `docker-compose.onprem.yml`
+Semua di server pelanggan. Akses: https://nms.perusahaan.com
+
+### MODE B: CLOUD SAAS `docker-compose.cloud.yml`
+Multi tenant di netmon.click. Akses: https://acme.netmon.click
+Wajib setup wildcard DNS: *.netmon.click -> IP Server
+
+## 5. MULTI-TENANCY & PORTAL
+1. ISOLASI: SEMUA query `where: { tenant_id: auth.tenant_id }`
+2. ROLES: superadmin, admin, operator, viewer
+3. UI SPLIT: `/dashboard` untuk admin. `/portal` untuk viewer di subdomain tenant
+
+## 6. 15 MODUL WAJIB
+MODUL 1-4: POLLER, ALERT, SLA, TOPOLOGY
+MODUL 5: IMPORT CSV/EXCEL
+MODUL 6: BULK ACTIONS
+MODUL 7: REPORT PDF
+MODUL 8: STATUS PAGE /status/[tenant]
+MODUL 9: SECURITY + 2FA + SSO
+MODUL 10: AGENT
+MODUL 11: DASHBOARD BUILDER
+MODUL 12: PORTAL CUSTOMER /portal
+MODUL 13: USER MANAGEMENT
+MODUL 14: ONBOARDING /signup
+MODUL 15: SUPERADMIN /admin
+
+## 7. ENV WAJIB
+
+DATABASE_URL=
+REDIS_URL=
+JWT_SECRET=
+ENCRYPT_KEY=
+IS_SAAS=false
+NEXTAUTH_URL=https://netmon.click
+APP_URL=https://netmon.click
+
+*NEXT STEP SETELAH BELI DOMAIN*
+
+1. *Setup DNS Wildcard* di Cloudflare/Niagahoster
+
+ A Record: @ -> IP Server kamu
+ A Record: * -> IP Server kamu
+
+Biar `acme.netmon.click` langsung jalan
+
+2. *Ganti http://di.env*
+
+ NEXTAUTH_URL=https://netmon.click
+ APP_URL=https://netmon.click
+
+3. *SSL Otomatis*
+ Pakai Traefik + Let's Encrypt biar `_.netmon.click` auto https
+
+4. *Email Branding*
+ Kirim alert dari `noreply@netmon.click`
+
+*TAGLINE YANG COCOK BUAT http://NETMON.CLICK*
+1. `NETMON - Your Network, Always On`
+2. `NETMON - Click to Monitor Everything`
+3. `NETMON - Enterprise Network Visibility`
+
