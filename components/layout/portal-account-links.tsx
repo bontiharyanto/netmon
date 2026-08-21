@@ -13,6 +13,9 @@ export function PortalAccountLinks({ email }: { email?: string | null }) {
         {email}
       </Link>
       <Button variant="outline" size="sm" asChild>
+        <Link href="/portal/help">{t.nav.help}</Link>
+      </Button>
+      <Button variant="outline" size="sm" asChild>
         <Link href="/portal/account">{t.account.title}</Link>
       </Button>
       <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: "/login" })}>

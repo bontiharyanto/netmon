@@ -7,12 +7,12 @@ import { useI18n } from "@/components/layout/locale-provider";
 
 const LINKS = [
   { href: "/portal", key: "overview" as const },
+  { href: "/portal/help", key: "help" as const },
   { href: "/portal/assets", key: "assets" as const },
   { href: "/portal/cmdb", key: "cmdb" as const },
   { href: "/portal/topology", key: "topology" as const },
   { href: "/portal/tickets", key: "tickets" as const },
   { href: "/portal/knowledge", key: "knowledge" as const },
-  { href: "/portal/help", key: "help" as const },
   { href: "/portal/ai", key: "ai" as const },
 ];
 

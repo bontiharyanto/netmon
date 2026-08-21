@@ -46,6 +46,7 @@ const PRIMARY: { key: GroupKey; items: NavItem[] }[] = [
     key: "monitor",
     items: [
       { href: "/dashboard", labelKey: "overview", icon: LayoutDashboard },
+      { href: "/dashboard/help", labelKey: "help", icon: CircleHelp },
       { href: "/dashboard/alerts", labelKey: "alerts", icon: AlertTriangle, permission: "alert.read" },
       { href: "/dashboard/tickets", labelKey: "tickets", icon: Ticket, permission: "alert.read" },
       { href: "/dashboard/topology", labelKey: "topology", icon: GitFork, permission: "topology.read" },
@@ -66,7 +67,6 @@ const PRIMARY: { key: GroupKey; items: NavItem[] }[] = [
     items: [
       { href: "/dashboard/ai", labelKey: "insights", icon: Lightbulb, permission: "ai.use" },
       { href: "/dashboard/knowledge", labelKey: "knowledge", icon: BookOpen, permission: "kb.read" },
-      { href: "/dashboard/help", labelKey: "help", icon: CircleHelp },
       { href: "/dashboard/dashboards", labelKey: "boards", icon: PanelsTopLeft, permission: "dashboard.builder" },
       { href: "/dashboard/reports", labelKey: "reports", icon: FileText, permission: "reports.export" },
     ],
