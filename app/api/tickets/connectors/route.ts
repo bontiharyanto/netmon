@@ -23,9 +23,10 @@ const schema = z.object({
   rotate_token: z.boolean().optional(),
 });
 
-function withEvents(config: Record<string, string> | undefined, events?: string[]) {
+function withEvents(config: Record<string, string> | undefined, events?: string[], provider?: string) {
   const next = { ...(config ?? {}) };
   if (events?.length) next.events = events.join(",");
+  if (provider === "novacrm" && next.sync_cmdb == null) next.sync_cmdb = "true";
   return next;
 }
 
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
         base_url: parsed.data.base_url ?? "",
         api_user: parsed.data.api_user ?? "",
         api_key: mergeConnectorKey(null, parsed.data.api_key),
-        config: withEvents(parsed.data.config, parsed.data.events),
+        config: withEvents(parsed.data.config, parsed.data.events, provider.id),
         inbound_token: newInboundToken(),
       },
     });
@@ -107,6 +108,7 @@ export async function PATCH(req: Request) {
         config: withEvents(
           parsed.data.config ?? ((existing.config as Record<string, string>) || {}),
           parsed.data.events,
+          existing.provider,
         ),
         inbound_token: parsed.data.rotate_token ? newInboundToken() : existing.inbound_token,
       },

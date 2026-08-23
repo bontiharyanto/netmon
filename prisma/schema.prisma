@@ -181,18 +181,22 @@ model agent {
 }
 
 model cmdb_ci {
-  id         String  @id @default(cuid())
-  tenant_id  String
-  device_id  String?
-  ci_type    String
-  name       String
-  asset_tag  String?
-  serial     String?
-  owner      String?
-  status     String  @default("in_service")
-  location   String?
-  tenant     tenant  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-  device     device? @relation(fields: [device_id], references: [id], onDelete: SetNull)
+  id                String    @id @default(cuid())
+  tenant_id         String
+  device_id         String?
+  ci_type           String
+  name              String
+  asset_tag         String?
+  serial            String?
+  owner             String?
+  status            String    @default("in_service")
+  location          String?
+  external_asset_id String?
+  external_ci_id    String?
+  last_synced_at    DateTime?
+  last_sync_error   String?
+  tenant            tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  device            device?   @relation(fields: [device_id], references: [id], onDelete: SetNull)
 
   @@index([tenant_id])
 }

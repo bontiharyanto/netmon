@@ -96,6 +96,18 @@ Headers: `x-webhook-secret`, `X-Tenant-Id: {slug}`.
 
 Repeat alerts within 24 hours update the **same** NovaCRM ticket (fingerprint `netmon:{ticketId}`).
 
+### CMDB sync
+
+With **Sync CMDB** checked (default on a NovaCRM connector), create/update on `/dashboard/cmdb` upserts an **asset + CI** on NovaCRM. Delete in NETMON **retires** the asset; the CI stays for ticket history.
+
+`POST https://novacrm.click/api/v1/t/{slug}/webhooks/cmdb`
+
+Same Alert secret. Local CMDB write always succeeds; a failed push shows **Sync error** on the CI row and retries on the worker.
+
+Optional connector field **NovaCRM account UUID** — empty uses the Internal account.
+
+Deploy the NovaCRM `cmdb` webhook **before** enabling sync, or Test connection will say the tenant is reachable but the CMDB channel is not deployed yet.
+
 ### Laptop vs cloud
 
 | From | To | Result |

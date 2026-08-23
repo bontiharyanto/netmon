@@ -75,6 +75,25 @@ export async function testTicketConnector(connector: Connector) {
         };
       }
       if (row.status === "blocked") return { ok: false, status: "NovaCRM tenant is paused" };
+      const cmdb = await fetchJson(nova.cmdb, {
+        method: "POST",
+        headers: novaCrmHeaders(secret, nova.slug),
+        body: JSON.stringify({ source: "NETMON", op: "ping" }),
+      });
+      if (cmdb.res.ok) {
+        return {
+          ok: true,
+          status: nova.slug ? `NovaCRM tenant ${nova.slug} reachable · CMDB sync ready` : "NovaCRM reachable · CMDB sync ready",
+        };
+      }
+      if (cmdb.res.status === 404) {
+        return {
+          ok: true,
+          status: nova.slug
+            ? `NovaCRM tenant ${nova.slug} reachable · CMDB channel not deployed yet`
+            : "NovaCRM reachable · CMDB channel not deployed yet",
+        };
+      }
       return {
         ok: true,
         status: nova.slug ? `NovaCRM tenant ${nova.slug} reachable` : "NovaCRM reachable",
@@ -108,24 +127,6 @@ export async function testTicketConnector(connector: Connector) {
         headers: { Authorization: basic(secret, "X") },
       });
       return { ok: res.ok, status: res.ok ? "Freshdesk authenticated" : `Freshdesk ${res.status}` };
-    }
-    if (connector.provider === "novacrm") {
-      const nova = novaCrmContext(connector);
-      const { res, json } = await fetchJson(nova.health, {
-        headers: novaCrmHeaders(secret, nova.slug),
-      });
-      const row = asRecord(asRecord(json).data);
-      if (!res.ok) {
-        return {
-          ok: false,
-          status: res.status === 404 ? "NovaCRM tenant not found — check the slug" : `NovaCRM ${res.status}`,
-        };
-      }
-      if (row.status === "blocked") return { ok: false, status: "NovaCRM tenant is paused" };
-      return {
-        ok: true,
-        status: nova.slug ? `NovaCRM tenant ${nova.slug} reachable` : "NovaCRM reachable",
-      };
     }
     if (connector.provider === "glpi") {
       const { res } = await fetchJson(`${base}/initSession`, {

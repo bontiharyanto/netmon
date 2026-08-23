@@ -30,6 +30,7 @@ export function novaCrmContext(connector: Connector) {
     slug,
     health: slug ? `${host}/api/v1/t/${slug}/health` : `${host}/api/health`,
     alerts: slug ? `${host}/api/v1/t/${slug}/webhooks/alerts` : `${host}/api/webhooks/alerts`,
+    cmdb: slug ? `${host}/api/v1/t/${slug}/webhooks/cmdb` : `${host}/api/webhooks/cmdb`,
     ticketUrl: (id: string) => `${host}/tickets/${id}`,
   };
 }

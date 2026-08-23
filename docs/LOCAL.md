@@ -78,7 +78,7 @@ npm run dev
 | Direction | Works? |
 | --- | --- |
 | Browser → `localhost:3000` | Yes |
-| NETMON → `https://novacrm.click` (open ticket) | Yes, if the laptop has internet |
+| NETMON → `https://novacrm.click` (open ticket / sync CMDB) | Yes, if the laptop has internet |
 | NovaCRM / internet → NETMON inbound webhook | **No** — `APP_URL` is localhost |
 | Tenant subdomain `demo.netmon.click` | Only after cloud DNS + Traefik |
 

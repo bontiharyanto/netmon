@@ -1,7 +1,8 @@
 import { Worker } from "bullmq";
 import { getRedis } from "@/lib/redis";
-import { getPollQueue, POLL_QUEUE } from "@/lib/queue";
+import { getPollQueue, POLL_QUEUE, CMDB_SYNC_QUEUE, type CmdbSyncJob } from "@/lib/queue";
 import { pollAllDevices } from "@/lib/poller";
+import { processCmdbNovaSync } from "@/lib/cmdb-novacrm";
 
 async function start() {
   const connection = getRedis();
@@ -21,6 +22,18 @@ async function start() {
 
   worker.on("failed", (job, err) => {
     console.error(`[NETMON poller] job ${job?.id} failed`, err);
+  });
+
+  const cmdbWorker = new Worker<CmdbSyncJob>(
+    CMDB_SYNC_QUEUE,
+    async (job) => {
+      await processCmdbNovaSync(job.data);
+    },
+    { connection },
+  );
+
+  cmdbWorker.on("failed", (job, err) => {
+    console.error(`[NETMON cmdb-sync] job ${job?.id} failed`, err);
   });
 
   console.log("[NETMON poller] worker started");

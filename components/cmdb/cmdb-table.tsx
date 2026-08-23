@@ -11,6 +11,8 @@ type Ci = {
   status: string;
   location: string | null;
   device: { hostname: string; ip: string; status: string } | null;
+  last_synced_at?: string | Date | null;
+  last_sync_error?: string | null;
 };
 
 export function CmdbTable({ items }: { items: Ci[] }) {
@@ -31,6 +33,7 @@ export function CmdbTable({ items }: { items: Ci[] }) {
               <th className="px-5 py-3">Owner</th>
               <th className="px-5 py-3">Linked device</th>
               <th className="px-5 py-3">Status</th>
+              <th className="px-5 py-3">NovaCRM</th>
             </tr>
           </thead>
           <tbody>
@@ -49,6 +52,17 @@ export function CmdbTable({ items }: { items: Ci[] }) {
                 </td>
                 <td className="px-5 py-3">
                   <StatusBadge status={item.status} />
+                </td>
+                <td className="px-5 py-3">
+                  {item.last_sync_error ? (
+                    <span className="text-xs text-destructive" title={item.last_sync_error}>
+                      Sync error
+                    </span>
+                  ) : item.last_synced_at ? (
+                    <span className="font-mono text-xs text-muted-foreground">Synced</span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
                 </td>
               </tr>
             ))}

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { writeAudit } from "@/lib/audit";
+import { scheduleCmdbNovaSync } from "@/lib/cmdb-novacrm";
 
 const schema = z.object({
   name: z.string().min(2).optional(),
@@ -57,6 +58,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const item = await prisma.cmdb_ci.update({ where: { id: existing.id }, data });
   await writeAudit(gate.session.user.tenantId, gate.session.user.id, `cmdb.update:${item.name}`);
+  void scheduleCmdbNovaSync({ tenantId: gate.session.user.tenantId, ciId: item.id, op: "upsert" });
   return NextResponse.json(item);
 }
 
@@ -66,6 +68,30 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
 
   const existing = await loadOwned(params.id, gate.session.user.tenantId);
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const device = existing.device_id
+    ? await prisma.device.findFirst({
+        where: { id: existing.device_id, tenant_id: gate.session.user.tenantId },
+        select: { hostname: true, ip: true },
+      })
+    : null;
+
+  void scheduleCmdbNovaSync({
+    tenantId: gate.session.user.tenantId,
+    ciId: existing.id,
+    op: "retire",
+    snapshot: {
+      name: existing.name,
+      ci_type: existing.ci_type,
+      asset_tag: existing.asset_tag,
+      serial: existing.serial,
+      owner: existing.owner,
+      location: existing.location,
+      status: "retired",
+      hostname: device?.hostname,
+      ip: device?.ip,
+    },
+  });
 
   await prisma.cmdb_ci.delete({ where: { id: existing.id } });
   await writeAudit(gate.session.user.tenantId, gate.session.user.id, `cmdb.delete:${existing.name}`);

@@ -61,7 +61,10 @@ const EMPTY = (provider: TicketProvider): Draft => ({
   api_user: "",
   api_key: "",
   has_key: false,
-  config: Object.fromEntries(provider.fields.map((field) => [field.key, ""])),
+  config: {
+    ...Object.fromEntries(provider.fields.map((field) => [field.key, ""])),
+    ...(provider.id === "novacrm" ? { sync_cmdb: "true" } : {}),
+  },
 });
 
 export function TicketSettings() {
@@ -328,6 +331,22 @@ export function TicketSettings() {
               />
               Auto-open a ticket when a matching alert fires
             </label>
+            {draft.provider === "novacrm" && (
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  className="accent-primary"
+                  checked={(draft.config.sync_cmdb ?? "true").toLowerCase() !== "false"}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      config: { ...draft.config, sync_cmdb: e.target.checked ? "true" : "false" },
+                    })
+                  }
+                />
+                Sync CMDB to NovaCRM (create/update asset + CI; delete retires the asset)
+              </label>
+            )}
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { writeAudit } from "@/lib/audit";
+import { scheduleCmdbNovaSync } from "@/lib/cmdb-novacrm";
 
 const schema = z.object({
   name: z.string().min(2),
@@ -62,5 +63,6 @@ export async function POST(req: Request) {
     },
   });
   await writeAudit(gate.session.user.tenantId, gate.session.user.id, `cmdb.create:${item.name}`);
+  void scheduleCmdbNovaSync({ tenantId: gate.session.user.tenantId, ciId: item.id, op: "upsert" });
   return NextResponse.json(item);
 }

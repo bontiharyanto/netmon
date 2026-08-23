@@ -62,8 +62,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
       id: "Ubah catatan CMDB",
     },
     body: {
-      en: "On /dashboard/cmdb, operators and admins can add, edit, and delete configuration items (name, type, asset tag, serial, owner, location, status, linked device). Portal /portal/cmdb is read-only.",
-      id: "Di /dashboard/cmdb, operator dan admin bisa menambah, mengubah, dan menghapus CI (nama, tipe, asset tag, serial, owner, lokasi, status, perangkat terkait). Portal /portal/cmdb hanya baca.",
+      en: "On /dashboard/cmdb, operators and admins can add, edit, and delete configuration items (name, type, asset tag, serial, owner, location, status, linked device). Portal /portal/cmdb is read-only. If a NovaCRM connector is enabled with Sync CMDB, create/update pushes an asset + CI; delete retires the asset in NovaCRM.",
+      id: "Di /dashboard/cmdb, operator dan admin bisa menambah, mengubah, dan menghapus CI (nama, tipe, asset tag, serial, owner, lokasi, status, perangkat terkait). Portal /portal/cmdb hanya baca. Jika connector NovaCRM enabled dan Sync CMDB aktif, create/update mengirim aset + CI; hapus menandai aset retired di NovaCRM.",
     },
   },
   {

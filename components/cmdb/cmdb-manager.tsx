@@ -19,6 +19,8 @@ type Ci = {
   location: string | null;
   device_id?: string | null;
   device: { hostname: string; ip: string; status: string } | null;
+  last_synced_at?: string | Date | null;
+  last_sync_error?: string | null;
 };
 
 type FormState = {
@@ -216,7 +218,7 @@ export function CmdbManager({ canWrite }: { canWrite: boolean }) {
           <CardTitle>CMDB</CardTitle>
           <CardDescription>
             {items.length} configuration items
-            {canWrite ? " · Edit or delete a row" : ""}
+            {canWrite ? " · Edit or delete a row · NovaCRM sync uses the Ticketing connector" : ""}
           </CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
@@ -230,6 +232,7 @@ export function CmdbManager({ canWrite }: { canWrite: boolean }) {
                 <th className="px-5 py-3">Owner</th>
                 <th className="px-5 py-3">Linked device</th>
                 <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3">NovaCRM</th>
                 {canWrite && <th className="px-5 py-3"></th>}
               </tr>
             </thead>
@@ -249,6 +252,17 @@ export function CmdbManager({ canWrite }: { canWrite: boolean }) {
                   </td>
                   <td className="px-5 py-3">
                     <StatusBadge status={item.status} />
+                  </td>
+                  <td className="px-5 py-3">
+                    {item.last_sync_error ? (
+                      <span className="text-xs text-destructive" title={item.last_sync_error}>
+                        Sync error
+                      </span>
+                    ) : item.last_synced_at ? (
+                      <span className="font-mono text-xs text-muted-foreground">Synced</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </td>
                   {canWrite && (
                     <td className="px-5 py-3 text-right">
@@ -274,7 +288,7 @@ export function CmdbManager({ canWrite }: { canWrite: boolean }) {
               ))}
               {items.length === 0 && (
                 <tr>
-                  <td className="px-5 py-8 text-sm text-muted-foreground" colSpan={canWrite ? 8 : 7}>
+                  <td className="px-5 py-8 text-sm text-muted-foreground" colSpan={canWrite ? 9 : 8}>
                     No configuration items yet.
                   </td>
                 </tr>

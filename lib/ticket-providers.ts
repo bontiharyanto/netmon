@@ -27,11 +27,11 @@ export const TICKET_PROVIDERS: TicketProvider[] = [
   {
     id: "novacrm",
     name: "NovaCRM",
-    blurb: "Open incidents on novacrm.click from NETMON alerts. Uses the tenant alert webhook.",
+    blurb: "Open incidents on novacrm.click from NETMON alerts. Optionally sync CMDB as assets.",
     user_label: "Tenant slug",
     key_label: "Alert webhook secret",
     base_placeholder: "https://novacrm.click",
-    fields: [],
+    fields: [{ key: "account_id", label: "NovaCRM account UUID (optional)", placeholder: "Internal if empty" }],
   },
   {
     id: "jira",
@@ -134,4 +134,10 @@ export function cfg(config: unknown, key: string, fallback = "") {
   if (!config || typeof config !== "object" || Array.isArray(config)) return fallback;
   const value = (config as Record<string, unknown>)[key];
   return value == null ? fallback : String(value);
+}
+
+export function cfgEnabled(config: unknown, key: string, defaultOn = true) {
+  const raw = cfg(config, key, defaultOn ? "true" : "false").trim().toLowerCase();
+  if (!raw) return defaultOn;
+  return raw !== "false" && raw !== "0" && raw !== "off" && raw !== "no";
 }
