@@ -4,7 +4,7 @@ This is the operator handbook: how a device gets into NETMON, what “up / down�
 
 UI: English default. Paths below are for the NOC (`/dashboard`). Viewers use `/portal` (read-only).
 
-Related: [User guide](USER-GUIDE.md) · [Agents](AGENT.md) · [Channels](CHANNELS.md) · [Ticketing](TICKETING.md) · [Architecture](ARCHITECTURE.md)
+Related: [User guide](USER-GUIDE.md) · [Agents](AGENT.md) · [Channels](CHANNELS.md) · [Ticketing](TICKETING.md) · [CMDB](CMDB.md) · [Architecture](ARCHITECTURE.md)
 
 ---
 
@@ -255,7 +255,7 @@ Acknowledge / resolve from **Alerts** (`/dashboard/alerts`). Viewers cannot writ
 | Overview | `/dashboard` | KPI: up / down / firing / SLA |
 | Alerts | `/dashboard/alerts` | Firing incidents |
 | SLA | `/dashboard/sla` | 30-day uptime (from poller ticks) |
-| CMDB | `/dashboard/cmdb` | Asset tag, serial, owner (optional) |
+| CMDB | `/dashboard/cmdb` | Asset tag, serial, owner. Optional NovaCRM sync: [CMDB.md](CMDB.md) |
 | Public status | `/status/{slug}` | No login |
 | Incident ticker | header | Auto on mass down, or custom text on **Security** |
 

@@ -44,7 +44,7 @@ Login errors: wrong password vs `OTP_REQUIRED` vs `DATABASE_UNAVAILABLE` (Postgr
 
 NovaCRM outbound (server-side, not a public NETMON route):  
 `POST {novacrm}/api/v1/t/{slug}/webhooks/alerts` with `x-webhook-secret`.  
-CMDB: `POST {novacrm}/api/v1/t/{slug}/webhooks/cmdb` (same secret).
+CMDB: `POST {novacrm}/api/v1/t/{slug}/webhooks/cmdb` (same secret). Operator notes: [CMDB.md](CMDB.md).
 
 ## Notify and inbox
 

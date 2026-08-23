@@ -18,6 +18,7 @@ Start here, then open the guide that matches the job.
 | [Monitor devices](MONITORING.md) | Operator | Register devices, poller vs agent, configuration |
 | [Database](DATABASE.md) | Engineer | Indexes, poller scan, metrics growth |
 | [Ticketing](TICKETING.md) | Admin / NOC | Helpdesk, Jira, **NovaCRM** |
+| [CMDB](CMDB.md) | Admin / operator | CIs in NETMON; optional push to NovaCRM |
 | [Channels](CHANNELS.md) | Admin | Email, Slack, WhatsApp, inbound replies |
 | [AI](AI.md) | Admin | Rules vs local LLM vs cloud |
 | [Agents](AGENT.md) | Operator | Inventory device → token → host heartbeat (not Add) |

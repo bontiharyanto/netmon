@@ -32,6 +32,7 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | [Help in the app](docs/USER-GUIDE.md) | `/dashboard/help` searchable |
 | [Database](docs/DATABASE.md) | Indexes and what is not optimized yet |
 | [Ticketing](docs/TICKETING.md) | Helpdesk, NovaCRM, Jira |
+| [CMDB](docs/CMDB.md) | CIs; optional NovaCRM asset + CI sync |
 | [Channels](docs/CHANNELS.md) | Notify + Reply-To |
 | [AI](docs/AI.md) | Rules / local LLM / cloud |
 | [Agents](docs/AGENT.md) | Token enroll, heartbeat, Unknown agent |
@@ -61,7 +62,7 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | Users | `/dashboard/users` | Invite + roles |
 | Signup | `/signup` | New tenant |
 | Superadmin | `/admin` | Platform |
-| CMDB | `/dashboard/cmdb` | Configuration items |
+| CMDB | `/dashboard/cmdb` | Configuration items; optional NovaCRM sync |
 | AI | `/dashboard/ai` | Copilot + insights |
 | Channels | `/dashboard/settings` | Email, Slack, WhatsApp, … |
 | Ticketing | `/dashboard/settings/tickets` | NovaCRM, Jira, ServiceNow, … |
