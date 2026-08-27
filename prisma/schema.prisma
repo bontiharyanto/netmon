@@ -331,3 +331,14 @@ model ai_setting {
   last_status       String?
   tenant            tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
+
+/// Platform-wide role → permission grants. Managed by superadmin Capability Matrix.
+model role_capability {
+  role       String
+  permission String
+  allowed    Boolean  @default(true)
+  updated_at DateTime @updatedAt
+
+  @@id([role, permission])
+  @@index([role])
+}

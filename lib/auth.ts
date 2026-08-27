@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { authenticator } from "otplib";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { permissionsForRole } from "@/lib/capabilities";
 import {
   DEFAULT_PASSWORD_DAYS,
   daysUntilPasswordExpiry,
@@ -93,6 +94,7 @@ export const authOptions: NextAuthOptions = {
           token.passwordExpired = isPasswordExpired(live.password_changed_at, passwordDays);
           token.passwordDaysLeft = daysUntilPasswordExpiry(live.password_changed_at, passwordDays);
           token.idleMinutes = parseIdleMinutes(live.tenant.idle_minutes);
+          token.permissions = await permissionsForRole(live.role);
         }
       } catch {
         // Keep the existing JWT if Postgres is briefly unreachable.
@@ -106,6 +108,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = (token.role as string) ?? "viewer";
         session.user.tenantId = (token.tenantId as string) ?? "";
         session.user.tenantSlug = (token.tenantSlug as string) ?? "";
+        session.user.permissions = Array.isArray(token.permissions) ? token.permissions : [];
         session.user.passwordExpired = Boolean(token.passwordExpired);
         session.user.passwordDaysLeft = typeof token.passwordDaysLeft === "number" ? token.passwordDaysLeft : DEFAULT_PASSWORD_DAYS;
         session.user.passwordDays = parsePasswordDays(token.passwordDays);

@@ -152,16 +152,30 @@ export const HELP_ARTICLES: HelpArticle[] = [
   },
   {
     id: "reports",
-    tags: ["report", "pdf", "excel", "xlsx", "period", "tanggal", "laporan"],
+    tags: ["report", "pdf", "excel", "xlsx", "csv", "period", "tanggal", "laporan", "analytics", "export"],
     nocHref: "/dashboard/reports",
     portalHref: "/portal/help",
     title: {
-      en: "Operations report",
-      id: "Laporan operasi",
+      en: "Reporting Center",
+      id: "Pusat laporan",
     },
     body: {
-      en: "Reports is a period snapshot: 24h, 7 days, 30 days, this month, or custom dates. Preview tables first (devices, alerts, tickets), then Download PDF or Excel. Device status is current. Alerts and tickets follow the date range. SLA is the rolling 30-day figure, not recomputed for the range.",
-      id: "Reports adalah cuplikan periode: 24 jam, 7 hari, 30 hari, bulan ini, atau tanggal kustom. Preview tabel dulu (perangkat, alert, tiket), lalu unduh PDF atau Excel. Status perangkat adalah kondisi saat ini. Alert dan tiket mengikuti rentang tanggal. SLA adalah angka 30 hari berjalan, bukan dihitung ulang untuk rentang itu.",
+      en: "Reporting Center templates: Operations, Inventory, Alerts, Tickets, SLA. Filter by city, type, status, and alert severity. Preview KPIs and tables, then export PDF, Excel, or CSV. Exports are written to the audit log. Device status is current; alerts/tickets follow the date range; SLA is the rolling 30-day figure.",
+      id: "Template Reporting Center: Operations, Inventory, Alerts, Tickets, SLA. Filter kota, tipe, status, dan severity alert. Preview KPI dan tabel, lalu ekspor PDF, Excel, atau CSV. Ekspor masuk audit log. Status perangkat saat ini; alert/tiket mengikuti rentang tanggal; SLA angka 30 hari berjalan.",
+    },
+  },
+  {
+    id: "capabilities",
+    tags: ["rbac", "permission", "capability", "matrix", "role", "access", "superadmin"],
+    nocHref: "/dashboard/admin/permissions",
+    portalHref: "/portal/help",
+    title: {
+      en: "Capability Matrix",
+      id: "Capability Matrix",
+    },
+    body: {
+      en: "Superadmins open Admin → Capabilities to view and edit the role → permission grid. Changes apply to API checks immediately. Navigation picks up grants on the next session refresh (~5 minutes) or re-login. Platform admin and viewer portal read-only cells are locked. Reset defaults restores the product matrix.",
+      id: "Superadmin buka Admin → Capabilities untuk melihat dan mengubah grid role → permission. Perubahan langsung berlaku di API. Navigasi mengikuti grant pada refresh sesi berikutnya (~5 menit) atau login ulang. Sel platform admin dan portal viewer read-only terkunci. Reset defaults mengembalikan matriks produk.",
     },
   },
   {

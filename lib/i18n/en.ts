@@ -32,10 +32,11 @@ export const en = {
     knowledge: "Knowledge",
     help: "Help",
     boards: "Boards",
-    reports: "Reports",
+    reports: "Reporting",
     users: "Users",
     settings: "Settings",
     security: "Security",
+    capabilities: "Capabilities",
     platform: "Platform",
   },
   portal: {

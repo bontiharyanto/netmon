@@ -6,5 +6,5 @@ import { KnowledgeWorkbench } from "@/components/knowledge/knowledge-workbench";
 export default async function KnowledgePage() {
   const session = await getAuthSession();
   if (!session?.user) redirect("/login");
-  return <KnowledgeWorkbench canWrite={hasPermission(session.user.role, "kb.write")} />;
+  return <KnowledgeWorkbench canWrite={hasPermission(session.user.role, "kb.write", session.user.permissions)} />;
 }

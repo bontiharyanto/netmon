@@ -28,7 +28,8 @@ Login errors: wrong password vs `OTP_REQUIRED` vs `DATABASE_UNAVAILABLE` (Postgr
 | POST | `/api/import` | import.inventory |
 | POST | `/api/topology/import` | topology.write |
 | GET | `/api/topology/template` | topology.read · `?format=csv\|xlsx\|pdf` filled from live links |
-| GET | `/api/reports` | reports.export · `?from&to&format=json\|pdf\|xlsx` |
+| GET | `/api/reports` | reports.export · `?from&to&template=operations\|inventory\|alerts\|tickets\|sla&city&type&status&severity&format=json\|pdf\|xlsx\|csv` · file exports audited |
+| GET | `/api/reports/meta` | reports.export · filter facets (cities, types, statuses) + templates |
 
 ## Ticketing
 
@@ -64,6 +65,7 @@ CMDB: `POST {novacrm}/api/v1/t/{slug}/webhooks/cmdb` (same secret). Operator not
 | GET/PUT | `/api/ai/settings` |
 | GET/POST | `/api/users` | users.manage |
 | PATCH/DELETE | `/api/users/{id}` | users.manage · cannot delete self / last admin |
+| GET/PUT/POST | `/api/admin/capabilities` | platform.admin · Capability Matrix |
 | POST | `/api/security/2fa` · `/api/security/2fa/confirm` |
 | GET/PATCH | `/api/security/session` | Idle timeout + password rotation days |
 | PATCH | `/api/account/password` | Own password; resets 30-day clock |

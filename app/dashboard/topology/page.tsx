@@ -10,7 +10,7 @@ export default async function TopologyPage() {
   const session = await getAuthSession();
   if (!session?.user) redirect("/login");
 
-  const canUpload = hasPermission(session.user.role, "topology.write");
+  const canUpload = hasPermission(session.user.role, "topology.write", session.user.permissions);
   const [devices, links] = await Promise.all([
     prisma.device.findMany({ where: { tenant_id: session.user.tenantId } }),
     prisma.device_link.findMany({ where: { tenant_id: session.user.tenantId } }),

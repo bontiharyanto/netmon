@@ -18,6 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <AppShell
       email={session.user.email}
       role={session.user.role}
+      permissions={session.user.permissions}
       tenantSlug={session.user.tenantSlug}
       tenantName={tenant?.name}
       idleMinutes={parseIdleMinutes(tenant?.idle_minutes)}

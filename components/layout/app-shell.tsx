@@ -13,6 +13,7 @@ export function AppShell({
   children,
   email,
   role,
+  permissions,
   tenantSlug,
   tenantName,
   idleMinutes,
@@ -20,6 +21,7 @@ export function AppShell({
   children: React.ReactNode;
   email?: string | null;
   role?: string;
+  permissions?: string[];
   tenantSlug?: string;
   tenantName?: string;
   idleMinutes?: number;
@@ -74,6 +76,7 @@ export function AppShell({
         collapsed={collapsed}
         onToggle={toggleCollapsed}
         role={role}
+        permissions={permissions}
         tenantSlug={tenantSlug}
         tenantName={tenantName}
         email={email}

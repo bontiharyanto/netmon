@@ -7,5 +7,5 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
   const session = await getAuthSession();
   if (!session?.user) redirect("/login");
 
-  return <TicketDetail id={params.id} canRespond={hasPermission(session.user.role, "alert.write")} />;
+  return <TicketDetail id={params.id} canRespond={hasPermission(session.user.role, "alert.write", session.user.permissions)} />;
 }

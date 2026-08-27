@@ -22,7 +22,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await getAuthSession();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!canWrite(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!canWrite(session.user.role, session.user.permissions)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });

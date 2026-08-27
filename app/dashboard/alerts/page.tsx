@@ -11,7 +11,7 @@ export default async function AlertsPage() {
   const session = await getAuthSession();
   if (!session?.user) redirect("/login");
 
-  const canWrite = hasPermission(session.user.role, "alert.write");
+  const canWrite = hasPermission(session.user.role, "alert.write", session.user.permissions);
   try {
     await autoOpenTicketsForTenant(session.user.tenantId);
   } catch (error) {

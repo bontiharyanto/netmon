@@ -35,7 +35,7 @@ Sign in as admin or operator.
 | Insights | `/dashboard/ai` | Copilot over tenant data |
 | Knowledge | `/dashboard/knowledge` | Runbooks; portal sees published only |
 | Boards | `/dashboard/dashboards` | JSON widget layouts |
-| Reports | `/dashboard/reports` | Period (24h / 7d / 30d / month / custom). Table preview. Download PDF or Excel. |
+| Reporting Center | `/dashboard/reports` | Templates (Operations, Inventory, Alerts, Tickets, SLA). Filters (city, type, status, severity). Preview + export PDF / Excel / CSV. |
 
 ### Admin
 
@@ -44,6 +44,7 @@ Sign in as admin or operator.
 | Users | `/dashboard/users` | admin+: add, edit name/email/role, reset password, delete (not self / last admin) |
 | Settings | `/dashboard/settings` | Channels, Ticketing, AI |
 | Security | `/dashboard/security` | TOTP 2FA, session idle timeout (per tenant), password rotation (30 days). Absolute session max is `SESSION_MAX_HOURS` (default 8h) — [SESSION.md](SESSION.md). |
+| Capability Matrix | `/dashboard/admin/permissions` | superadmin only · edit role → permission grants — [CAPABILITIES.md](CAPABILITIES.md) |
 | Account | `/dashboard/account` | Change own password (required when older than 30 days) |
 | Platform | `/admin` | superadmin only |
 

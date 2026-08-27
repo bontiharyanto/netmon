@@ -16,7 +16,7 @@ const schema = z.object({
 export async function GET() {
   const session = await getAuthSession();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!canManageUsers(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!canManageUsers(session.user.role, session.user.permissions)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const users = await prisma.user.findMany({
     where: { tenant_id: session.user.tenantId },
@@ -29,7 +29,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await getAuthSession();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!canManageUsers(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!canManageUsers(session.user.role, session.user.permissions)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });

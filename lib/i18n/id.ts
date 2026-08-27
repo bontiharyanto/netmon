@@ -32,10 +32,11 @@ export const id = {
     knowledge: "Pengetahuan",
     help: "Bantuan",
     boards: "Papan",
-    reports: "Laporan",
+    reports: "Reporting",
     users: "Pengguna",
     settings: "Pengaturan",
     security: "Keamanan",
+    capabilities: "Capabilities",
     platform: "Platform",
   },
   portal: {

@@ -15,7 +15,7 @@ export default async function CmdbPage() {
           Configuration items for this tenant. Operators can add, edit, and delete. Portal viewers stay read-only.
         </p>
       </div>
-      <CmdbManager canWrite={hasPermission(session.user.role, "cmdb.write")} />
+      <CmdbManager canWrite={hasPermission(session.user.role, "cmdb.write", session.user.permissions)} />
     </div>
   );
 }

@@ -53,7 +53,7 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | Topology | `/dashboard/topology` | Live map + file upload |
 | Import | `/dashboard/import` | CSV / Excel |
 | Inventory | `/dashboard/devices` | Hostname + IP. CCTV/NVR as up/down (not live video) |
-| Reports | `/dashboard/reports` | PDF |
+| Reports | `/dashboard/reports` | PDF / Excel / CSV · templates + filters |
 | Status page | `/status/[tenant]` | Public |
 | Security | `/dashboard/security` | TOTP 2FA, idle timeout |
 | Account | `/dashboard/account` | Change own password |

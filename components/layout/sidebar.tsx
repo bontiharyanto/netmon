@@ -13,6 +13,7 @@ import {
   FileText,
   Gauge,
   GitFork,
+  KeyRound,
   LayoutDashboard,
   MapPin,
   Lightbulb,
@@ -76,6 +77,7 @@ const ADMIN: NavItem[] = [
   { href: "/dashboard/users", labelKey: "users", icon: Users, permission: "users.manage" },
   { href: "/dashboard/settings", labelKey: "settings", icon: Settings },
   { href: "/dashboard/security", labelKey: "security", icon: Shield, permission: "security.manage" },
+  { href: "/dashboard/admin/permissions", labelKey: "capabilities", icon: KeyRound, permission: "platform.admin" },
   { href: "/admin", labelKey: "platform", icon: Building2, permission: "platform.admin" },
 ];
 
@@ -140,6 +142,7 @@ export function Sidebar({
   collapsed,
   onToggle,
   role,
+  permissions,
   tenantSlug,
   tenantName,
   email,
@@ -149,6 +152,7 @@ export function Sidebar({
   collapsed: boolean;
   onToggle: () => void;
   role?: string;
+  permissions?: string[];
   tenantSlug?: string;
   tenantName?: string;
   email?: string | null;
@@ -157,15 +161,16 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const can = (permission: Permission) => hasPermission(role, permission, permissions);
   const groups = PRIMARY.map((group) => ({
     ...group,
-    items: group.items.filter((item) => !item.permission || hasPermission(role, item.permission)),
+    items: group.items.filter((item) => !item.permission || can(item.permission)),
   })).filter((group) => group.items.length > 0);
   const adminItems = ADMIN.filter((item) => {
     if (item.href === "/dashboard/settings") {
-      return hasPermission(role, "channels.manage") || hasPermission(role, "ai.manage");
+      return can("channels.manage") || can("ai.manage");
     }
-    return !item.permission || hasPermission(role, item.permission);
+    return !item.permission || can(item.permission);
   });
   const workspace = tenantName || tenantSlug || "NETMON";
   const host = tenantSlug ? `${tenantSlug}.netmon.click` : null;

@@ -35,6 +35,10 @@ export default withAuth(
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
+    if (path.startsWith("/dashboard/admin") && role !== "superadmin") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
     if (path.startsWith("/dashboard") && role === "viewer") {
       return NextResponse.redirect(new URL("/portal", req.url));
     }

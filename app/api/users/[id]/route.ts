@@ -16,7 +16,7 @@ const patchSchema = z.object({
 async function gate() {
   const session = await getAuthSession();
   if (!session?.user) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }), session: null };
-  if (!canManageUsers(session.user.role)) {
+  if (!canManageUsers(session.user.role, session.user.permissions)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }), session: null };
   }
   return { error: null, session };

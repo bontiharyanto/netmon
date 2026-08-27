@@ -12,7 +12,7 @@ type Row = { hostname?: string; ip?: string; type?: string; location?: string; c
 export async function POST(req: Request) {
   const session = await getAuthSession();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!canWrite(session.user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!canWrite(session.user.role, session.user.permissions)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const form = await req.formData();
   const file = form.get("file");
