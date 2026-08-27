@@ -48,9 +48,17 @@ export function IndonesiaMap({
 }) {
   const { resolvedTheme } = useTheme();
   const light = resolvedTheme === "light";
-  const tiles = light
-    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+  const cartoKey = process.env.NEXT_PUBLIC_CARTO_API_KEY?.trim();
+  // CARTO raster basemaps now watermark without a key (https://carto.com/basemaps/apikey).
+  // Default to OSM so production works without signup; optional CARTO when key is set.
+  const tiles = cartoKey
+    ? light
+      ? `https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(cartoKey)}`
+      : `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(cartoKey)}`
+    : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const attribution = cartoKey
+    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
   const selected = sites.find((s) => s.city.slug === selectedSlug)?.city ?? null;
 
   return (
@@ -65,10 +73,7 @@ export function IndonesiaMap({
       className="h-full w-full rounded-lg"
       style={{ background: light ? "#e8eef2" : "#0b1014" }}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url={tiles}
-      />
+      <TileLayer attribution={attribution} url={tiles} />
       <FlyTo site={selected} />
       {sites.map(({ city, devices }) => {
         const active = city.slug === selectedSlug;
