@@ -29,6 +29,9 @@ const schema = z.object({
   display_name: z.string().max(160).optional(),
   skip_poller_when_agent: z.boolean().optional(),
   checks: checksSchema,
+  sensor_kind: z.enum(["temperature", "humidity", "power", "other"]).optional(),
+  sensor_json_path: z.string().max(120).optional(),
+  last_sensor_unit: z.string().max(16).optional(),
 });
 
 export async function GET() {
@@ -74,6 +77,13 @@ export async function POST(req: Request) {
       checks,
       display_name: parsed.data.display_name?.trim() || null,
       skip_poller_when_agent: parsed.data.skip_poller_when_agent ?? false,
+      sensor_kind: parsed.data.type === "sensor" ? parsed.data.sensor_kind ?? "temperature" : null,
+      sensor_json_path: parsed.data.type === "sensor" ? parsed.data.sensor_json_path?.trim() || "temp_c" : null,
+      last_sensor_unit:
+        parsed.data.type === "sensor"
+          ? parsed.data.last_sensor_unit?.trim() ||
+            (parsed.data.sensor_kind === "humidity" ? "%" : parsed.data.sensor_kind === "power" ? "W" : "C")
+          : null,
       tenant_id: gate.session.user.tenantId,
     },
   });

@@ -26,8 +26,8 @@ Sign in as admin or operator.
 
 | Page | Path | What to do |
 | --- | --- | --- |
-| Inventory | `/dashboard/devices` | Hostname + IP. **Checks** + **SNMP** (v2c GET profiles). Latency history. Skip poller when agent fresh. City for map. Bulk mark / delete |
-| Floor plans | `/dashboard/floors` | Upload JPG/PNG denah; pin devices (x%, y%); optional **zone** / **rack**. Portal read-only. |
+| Inventory | `/dashboard/devices` | Hostname + IP. **Checks** + **SNMP** + type **sensor** (HTTP JSON reading). Latency history. Skip poller when agent fresh. City for map. Bulk mark / delete |
+| Floor plans | `/dashboard/floors` | Upload JPG/PNG denah; pin devices (x%, y%); optional **zone** / **rack**; **Heat map** from temperature sensors. Portal read-only. |
 | CMDB | `/dashboard/cmdb` | CIs + **relations** (App runs_on Server, App backed_by Database). Optional NovaCRM sync. |
 | Import | `/dashboard/import` | CSV / Excel inventory |
 | Agents | `/dashboard/agents` | Issue a token for an existing Inventory device, then install the host script. Up/down is mainly the 60s TCP poller; the agent is an optional push of CPU/RAM/disk. |

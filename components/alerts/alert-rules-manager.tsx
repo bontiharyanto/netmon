@@ -32,6 +32,9 @@ function thresholdHint(event: string, config: Record<string, unknown>) {
   if (event === "snmp_threshold") {
     return `${String(config.oid_key ?? "?")} ${String(config.op ?? ">")} ${Number(config.value ?? 0)}`;
   }
+  if (event === "sensor_threshold") {
+    return `${String(config.op ?? ">")} ${Number(config.value ?? 28)}`;
+  }
   return "—";
 }
 
@@ -65,6 +68,9 @@ export function AlertRulesManager({ canWrite }: { canWrite: boolean }) {
     if (event.startsWith("metric_")) return { percent: Number(threshold) || 90 };
     if (event === "snmp_threshold") {
       return { oid_key: oidKey.trim() || "value", op: ">", value: Number(threshold) || 0 };
+    }
+    if (event === "sensor_threshold") {
+      return { op: ">", value: Number(threshold) || 28, metric: "temp_c" };
     }
     return {};
   }

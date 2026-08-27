@@ -34,6 +34,7 @@ export default async function PortalAssetsPage() {
                 <th className="px-5 py-3">Checks</th>
                 <th className="px-5 py-3">Latency</th>
                 <th className="px-5 py-3">SNMP</th>
+                <th className="px-5 py-3">Reading</th>
                 <th className="px-5 py-3">Location</th>
                 <th className="px-5 py-3">City</th>
                 <th className="px-5 py-3">SLA</th>
@@ -56,6 +57,11 @@ export default async function PortalAssetsPage() {
                     </td>
                     <td className="px-5 py-3 text-xs text-muted-foreground">
                       {device.snmp_enabled ? "on" : "—"}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs">
+                      {device.last_sensor_value != null
+                        ? `${device.last_sensor_value}${device.last_sensor_unit || ""}`
+                        : "—"}
                     </td>
                     <td className="px-5 py-3 text-muted-foreground">{device.location ?? "—"}</td>
                     <td className="px-5 py-3 text-muted-foreground">{resolveDeviceCity(device)?.name ?? "—"}</td>

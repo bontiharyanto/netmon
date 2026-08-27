@@ -216,8 +216,22 @@ export const HELP_ARTICLES: HelpArticle[] = [
       id: "Denah lantai",
     },
     body: {
-      en: "Create a building and floor, upload a JPG/PNG/WebP plan (max 8 MB), select a device (optional zone/rack), then click the plan to pin it. Select a pin to edit zone/rack. Drag pins to move. Positions are stored as percentages. Portal users see the same floors read-only.",
-      id: "Buat gedung dan lantai, unggah denah JPG/PNG/WebP (maks 8 MB), pilih perangkat (opsional zone/rack), lalu klik denah untuk pin. Pilih pin untuk mengubah zone/rack. Geser pin untuk memindah. Posisi disimpan sebagai persen. Portal melihat denah yang sama secara baca saja.",
+      en: "Create a building and floor, upload a JPG/PNG/WebP plan (max 8 MB), select a device (optional zone/rack), then click the plan to pin it. Select a pin to edit zone/rack. Drag pins to move. Toggle Heat map for temperature sensor overlay. Positions are percentages. Portal is read-only.",
+      id: "Buat gedung dan lantai, unggah denah JPG/PNG/WebP (maks 8 MB), pilih perangkat (opsional zone/rack), lalu klik denah untuk pin. Pilih pin untuk mengubah zone/rack. Geser pin untuk memindah. Toggle Heat map untuk overlay sensor suhu. Posisi persen. Portal baca saja.",
+    },
+  },
+  {
+    id: "sensors",
+    tags: ["sensor", "temperature", "humidity", "heat", "facility", "json"],
+    nocHref: "/dashboard/devices",
+    portalHref: "/portal/floors",
+    title: {
+      en: "Facility sensors",
+      id: "Facility sensors",
+    },
+    body: {
+      en: "Add Inventory type sensor with an HTTP JSON URL and path (e.g. temp_c). Readings appear on the device and feed floor Heat map. Alert rule sensor_threshold fires on high/low values. Details: docs/SENSORS.md.",
+      id: "Tambah Inventory tipe sensor dengan URL HTTP JSON dan path (mis. temp_c). Nilai tampil di perangkat dan mengisi Heat map lantai. Alert rule sensor_threshold untuk batas tinggi/rendah. Detail: docs/SENSORS.md.",
     },
   },
   {

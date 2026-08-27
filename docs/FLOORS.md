@@ -1,6 +1,6 @@
 # Floor plans
 
-Building / office floor plans with device pins (Plan A). Heat maps are out of scope for this version.
+Building / office floor plans with device pins (Plan A). Optional **heat map** overlay from temperature sensors (P3c).
 
 ## Concepts
 
@@ -9,6 +9,7 @@ Building / office floor plans with device pins (Plan A). Heat maps are out of sc
 | Building | Site or campus building |
 | Floor | One level with an optional plan image (JPG / PNG / WebP, max 8 MB) |
 | Placement | Device pin at **x% / y%** on that image; optional **zone** and **rack** labels |
+| Heat | IDW overlay from sensor temperature readings on the floor |
 
 Coordinates are percentages of the image box so pins stay aligned when the UI scales.
 
@@ -41,4 +42,4 @@ Images are stored in Postgres (`floor.image_data`) and served only to authentica
 docker compose -f docker-compose.cloud.yml exec worker npx prisma migrate deploy
 ```
 
-Requires migrations `0014_floor_plans` and `0016_p2_services_checks_rack` (rack/zone columns).
+Requires migrations `0014_floor_plans`, `0016_p2_services_checks_rack` (rack/zone), and `0019_p3c_sensors_heatmap` (sensor readings for heat).

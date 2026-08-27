@@ -32,6 +32,8 @@ type DeviceCtx = {
   type: string;
   status: string;
   last_check_latency_ms: number | null;
+  last_sensor_value?: number | null;
+  sensor_kind?: string | null;
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -188,6 +190,26 @@ function conditionMet(
                 ? value === threshold
                 : value > threshold;
       return { ok, message: `SNMP ${key}=${value} ${op} ${threshold}` };
+    }
+    case "sensor_threshold": {
+      const threshold = Number(cfg.value ?? 28);
+      const op = String(cfg.op ?? ">");
+      const value = device.last_sensor_value;
+      if (value == null) return { ok: false, message: "" };
+      const ok =
+        op === ">="
+          ? value >= threshold
+          : op === "<"
+            ? value < threshold
+            : op === "<="
+              ? value <= threshold
+              : op === "=="
+                ? value === threshold
+                : value > threshold;
+      return {
+        ok,
+        message: `sensor ${device.sensor_kind || "reading"}=${value} ${op} ${threshold}`,
+      };
     }
     default:
       return { ok: false, message: "" };

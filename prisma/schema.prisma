@@ -99,6 +99,12 @@ model device {
   snmp_v3_priv_key   String?  /// encrypted
   snmp_last_error String?
   snmp_last_at    DateTime?
+  /// temperature | humidity | power | other (when type=sensor)
+  sensor_kind       String?
+  /// Dot path into HTTP JSON body, e.g. temp_c or data.temp
+  sensor_json_path  String?
+  last_sensor_value Float?
+  last_sensor_unit  String?
   created_at    DateTime      @default(now())
   tenant        tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   alerts        alert[]

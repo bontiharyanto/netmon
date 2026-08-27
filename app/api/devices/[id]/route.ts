@@ -30,6 +30,9 @@ const schema = z.object({
   snmp_community: z.string().max(120).nullable().optional(),
   snmp_port: z.number().int().min(1).max(65535).optional(),
   snmp_profile_id: z.string().nullable().optional(),
+  sensor_kind: z.enum(["temperature", "humidity", "power", "other"]).nullable().optional(),
+  sensor_json_path: z.string().max(120).nullable().optional(),
+  last_sensor_unit: z.string().max(16).nullable().optional(),
 });
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
@@ -72,6 +75,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (parsed.data.snmp_profile_id !== undefined) data.snmp_profile_id = parsed.data.snmp_profile_id;
   if (parsed.data.snmp_community !== undefined) {
     data.snmp_community = resolveCommunityUpdate(parsed.data.snmp_community, existing.snmp_community);
+  }
+  if (parsed.data.sensor_kind !== undefined) data.sensor_kind = parsed.data.sensor_kind;
+  if (parsed.data.sensor_json_path !== undefined) {
+    data.sensor_json_path = parsed.data.sensor_json_path?.trim() || null;
+  }
+  if (parsed.data.last_sensor_unit !== undefined) {
+    data.last_sensor_unit = parsed.data.last_sensor_unit?.trim() || null;
   }
 
   const device = await prisma.device.update({ where: { id: existing.id }, data });

@@ -4,6 +4,7 @@ import { parseDeviceChecks, type DeviceChecks } from "@/lib/device-checks";
 import { evaluateDeviceAlerts } from "@/lib/alert-eval";
 import { pollSnmp } from "@/lib/snmp";
 import { parseSnmpOids } from "@/lib/snmp-profiles";
+import { defaultSensorUnit, pollSensorHttp } from "@/lib/sensor";
 import { Prisma } from "@prisma/client";
 
 const CHECK_HISTORY_KEEP = 50;
@@ -75,7 +76,7 @@ export async function runDeviceChecks(ip: string, checks: DeviceChecks): Promise
     const hit = await icmpCheck(ip);
     results.push({ kind: "icmp", target: ip, ok: hit.ok, ms: hit.ms });
   }
-  if (!results.length) {
+  if (!results.length && checks.tcp.length === 0 && checks.http.length === 0) {
     const hit = await tcpCheck(ip, 80);
     results.push({ kind: "tcp", target: `${ip}:80`, ok: hit.ok, ms: hit.ms });
   }
@@ -173,6 +174,8 @@ export async function pollDevice(deviceId: string) {
         type: device.type,
         status: "up",
         last_check_latency_ms: 0,
+        last_sensor_value: device.last_sensor_value,
+        sensor_kind: device.sensor_kind,
       },
       metric
         ? {
@@ -184,6 +187,73 @@ export async function pollDevice(deviceId: string) {
         : null,
     );
     return { id: device.id, status: "up", skipped: true, results: [] as CheckResult[] };
+  }
+
+  if (device.type === "sensor") {
+    const checks = parseDeviceChecks(device.checks, device.type);
+    const httpUrl = checks.http[0]?.url;
+    const jsonPath = device.sensor_json_path?.trim() || "temp_c";
+    const unit = device.last_sensor_unit || defaultSensorUnit(device.sensor_kind);
+    const results: CheckResult[] = [];
+
+    let status: "up" | "down" | "degraded" = "down";
+    let latency: number | null = null;
+    let sensorValue: number | null = null;
+
+    if (httpUrl) {
+      const reading = await pollSensorHttp({
+        url: httpUrl,
+        jsonPath,
+        expectStatus: checks.http[0]?.expectStatus ?? 200,
+      });
+      latency = reading.ms;
+      results.push({
+        kind: "sensor",
+        target: `${httpUrl}#${jsonPath}`,
+        ok: reading.ok,
+        ms: reading.ms,
+      });
+      if (reading.ok && reading.value != null) {
+        status = "up";
+        sensorValue = reading.value;
+      }
+    } else if (checks.tcp.length || checks.icmp) {
+      const probe = await runDeviceChecks(device.ip, checks);
+      results.push(...probe);
+      status = statusFromResults(probe, agentFresh);
+      latency =
+        probe.length > 0 ? Math.round(probe.reduce((sum, row) => sum + row.ms, 0) / probe.length) : null;
+    } else {
+      results.push({ kind: "sensor", target: "no-http-url", ok: false, ms: 0 });
+    }
+
+    await prisma.device.update({
+      where: { id: device.id },
+      data: {
+        status,
+        last_seen: status === "up" ? new Date() : device.last_seen,
+        last_sensor_value: sensorValue,
+        last_sensor_unit: unit || defaultSensorUnit(device.sensor_kind),
+      },
+    });
+    await persistCheckSample(device.tenant_id, device.id, status, results);
+
+    await evaluateDeviceAlerts(
+      {
+        id: device.id,
+        tenant_id: device.tenant_id,
+        hostname: device.hostname,
+        ip: device.ip,
+        type: device.type,
+        status,
+        last_check_latency_ms: latency,
+        last_sensor_value: sensorValue,
+        sensor_kind: device.sensor_kind,
+      },
+      null,
+    );
+
+    return { id: device.id, status, results };
   }
 
   const checks = parseDeviceChecks(device.checks, device.type);
@@ -274,6 +344,8 @@ export async function pollDevice(deviceId: string) {
       type: device.type,
       status,
       last_check_latency_ms: latency,
+      last_sensor_value: device.last_sensor_value,
+      sensor_kind: device.sensor_kind,
     },
     latestMetric
       ? {

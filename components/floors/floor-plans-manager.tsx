@@ -86,6 +86,7 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
   const [placingDeviceId, setPlacingDeviceId] = useState<string | null>(null);
   const [placeRack, setPlaceRack] = useState("");
   const [placeZone, setPlaceZone] = useState("");
+  const [showHeat, setShowHeat] = useState(false);
   const [loading, setLoading] = useState(true);
   const [buildingName, setBuildingName] = useState("");
   const [buildingAddress, setBuildingAddress] = useState("");
@@ -559,6 +560,12 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
                   </Button>
                 </div>
               )}
+              {floor && (
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <input type="checkbox" checked={showHeat} onChange={(e) => setShowHeat(e.target.checked)} />
+                  Heat map
+                </label>
+              )}
             </CardHeader>
             <CardContent className="space-y-4">
               {canWrite && floor && (
@@ -598,6 +605,7 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
                 onMove={movePin}
                 onSelect={setSelectedId}
                 selectedId={selectedId}
+                showHeat={showHeat}
               />
             </CardContent>
           </Card>

@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { StatusBadge } from "@/components/status-badge";
+import { FloorHeatOverlay } from "@/components/floors/floor-heat-overlay";
 
 export type FloorPin = {
   id: string;
@@ -15,6 +16,9 @@ export type FloorPin = {
     ip: string;
     type: string;
     status: string;
+    sensor_kind?: string | null;
+    last_sensor_value?: number | null;
+    last_sensor_unit?: string | null;
   };
 };
 
@@ -34,6 +38,7 @@ export function FloorPlanCanvas({
   onMove,
   onSelect,
   selectedId,
+  showHeat = false,
 }: {
   imageUrl: string | null;
   placements: FloorPin[];
@@ -43,6 +48,7 @@ export function FloorPlanCanvas({
   onMove: (placementId: string, x: number, y: number) => void;
   onSelect: (placementId: string | null) => void;
   selectedId: string | null;
+  showHeat?: boolean;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState<string | null>(null);
@@ -107,14 +113,19 @@ export function FloorPlanCanvas({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={imageUrl} alt="Floor plan" className="block h-auto w-full select-none" draggable={false} />
+      <FloorHeatOverlay placements={placements} enabled={showHeat} />
       {placements.map((pin) => {
         const active = pin.id === selectedId;
         const color = pinColor(pin.device.status);
+        const sensorLabel =
+          pin.device.last_sensor_value != null
+            ? ` · ${pin.device.last_sensor_value}${pin.device.last_sensor_unit || ""}`
+            : "";
         return (
           <button
             key={pin.id}
             type="button"
-            title={`${pin.device.hostname} · ${pin.device.ip}`}
+            title={`${pin.device.hostname} · ${pin.device.ip}${sensorLabel}`}
             className="absolute -translate-x-1/2 -translate-y-1/2"
             style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
             onClick={(event) => {
@@ -131,6 +142,7 @@ export function FloorPlanCanvas({
             />
             <span className="absolute left-1/2 top-5 -translate-x-1/2 whitespace-nowrap rounded bg-background/90 px-1.5 py-0.5 font-mono text-[10px] text-foreground shadow-sm">
               {pin.device.hostname}
+              {sensorLabel}
             </span>
           </button>
         );
@@ -170,6 +182,9 @@ export function PlacementList({
             <p className="font-mono text-[11px] text-muted-foreground">
               {pin.device.ip} · {pin.x.toFixed(1)}%, {pin.y.toFixed(1)}%
               {pin.rack || pin.zone ? ` · ${[pin.zone, pin.rack].filter(Boolean).join(" / ")}` : ""}
+              {pin.device.last_sensor_value != null
+                ? ` · ${pin.device.last_sensor_value}${pin.device.last_sensor_unit || ""}`
+                : ""}
             </p>
           </button>
           <StatusBadge status={pin.device.status} />

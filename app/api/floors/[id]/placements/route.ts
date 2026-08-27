@@ -53,7 +53,18 @@ export async function POST(req: Request, { params }: Params) {
       ...(parsed.data.zone !== undefined ? { zone: parsed.data.zone.trim() || null } : {}),
     },
     include: {
-      device: { select: { id: true, hostname: true, ip: true, type: true, status: true } },
+      device: {
+        select: {
+          id: true,
+          hostname: true,
+          ip: true,
+          type: true,
+          status: true,
+          sensor_kind: true,
+          last_sensor_value: true,
+          last_sensor_unit: true,
+        },
+      },
     },
   });
 

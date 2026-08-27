@@ -7,6 +7,7 @@ export const DEVICE_TYPES = [
   "database",
   "application",
   "service",
+  "sensor",
   "olt",
   "nvr",
   "camera",
@@ -43,6 +44,7 @@ export function defaultChecksForType(type: string): DeviceChecks {
   if (t === "database") return { tcp: [5432], http: [] };
   if (t === "application" || t === "service") return { tcp: [443], http: [] };
   if (t === "server") return { tcp: [80, 443], http: [] };
+  if (t === "sensor") return { tcp: [], http: [] };
   if (t === "nvr" || t === "camera") return { tcp: [80], http: [] };
   return { ...DEFAULT_CHECKS, http: [] };
 }
@@ -73,7 +75,7 @@ export function parseDeviceChecks(raw: unknown, typeFallback?: string): DeviceCh
   }
 
   return {
-    tcp: tcp.length ? tcp : [...fallback.tcp],
+    tcp: tcp.length ? tcp : http.length ? [] : [...fallback.tcp],
     http,
     icmp: Boolean(obj.icmp),
   };

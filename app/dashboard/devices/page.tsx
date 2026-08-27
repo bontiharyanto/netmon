@@ -36,6 +36,10 @@ type Device = {
   snmp_port?: number;
   snmp_profile_id?: string | null;
   snmp_last_error?: string | null;
+  sensor_kind?: string | null;
+  sensor_json_path?: string | null;
+  last_sensor_value?: number | null;
+  last_sensor_unit?: string | null;
 };
 
 type SnmpProfile = { id: string; name: string; system?: boolean };
@@ -97,6 +101,12 @@ export default function DevicesPage() {
   const [snmpPort, setSnmpPort] = useState("161");
   const [snmpProfileId, setSnmpProfileId] = useState("");
   const [profiles, setProfiles] = useState<SnmpProfile[]>([]);
+  const [sensorKind, setSensorKind] = useState("temperature");
+  const [sensorPath, setSensorPath] = useState("temp_c");
+  const [sensorId, setSensorId] = useState<string | null>(null);
+  const [editSensorKind, setEditSensorKind] = useState("temperature");
+  const [editSensorPath, setEditSensorPath] = useState("temp_c");
+  const [editSensorUnit, setEditSensorUnit] = useState("C");
 
   async function load() {
     const [devRes, profRes] = await Promise.all([fetch("/api/devices"), fetch("/api/snmp/profiles")]);
@@ -134,6 +144,9 @@ export default function DevicesPage() {
         location: formData.get("location"),
         city: formData.get("city"),
         checks: buildChecks(),
+        ...(type === "sensor"
+          ? { sensor_kind: sensorKind, sensor_json_path: sensorPath, last_sensor_unit: sensorKind === "humidity" ? "%" : sensorKind === "power" ? "W" : "C" }
+          : {}),
       }),
     });
     if (!res.ok) {
@@ -228,6 +241,33 @@ export default function DevicesPage() {
     load();
   }
 
+  function startEditSensor(device: Device) {
+    setSensorId(device.id);
+    setEditSensorKind(device.sensor_kind || "temperature");
+    setEditSensorPath(device.sensor_json_path || "temp_c");
+    setEditSensorUnit(device.last_sensor_unit || "C");
+  }
+
+  async function saveSensor() {
+    if (!sensorId) return;
+    const res = await fetch(`/api/devices/${sensorId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sensor_kind: editSensorKind,
+        sensor_json_path: editSensorPath,
+        last_sensor_unit: editSensorUnit,
+      }),
+    });
+    if (!res.ok) {
+      toast.error("Unable to update sensor");
+      return;
+    }
+    toast.success("Sensor updated");
+    setSensorId(null);
+    load();
+  }
+
   async function bulk(action: "delete" | "set_unknown") {
     const res = await fetch("/api/devices/bulk", {
       method: "POST",
@@ -283,9 +323,20 @@ export default function DevicesPage() {
             <Input
               value={httpUrl}
               onChange={(e) => setHttpUrl(e.target.value)}
-              placeholder="HTTP check URL (optional)"
+              placeholder={type === "sensor" ? "Sensor HTTP JSON URL" : "HTTP check URL (optional)"}
               className="md:col-span-2"
             />
+            {type === "sensor" && (
+              <>
+                <select className={selectClass} value={sensorKind} onChange={(e) => setSensorKind(e.target.value)}>
+                  <option value="temperature">temperature</option>
+                  <option value="humidity">humidity</option>
+                  <option value="power">power</option>
+                  <option value="other">other</option>
+                </select>
+                <Input value={sensorPath} onChange={(e) => setSensorPath(e.target.value)} placeholder="JSON path e.g. temp_c" />
+              </>
+            )}
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input type="checkbox" checked={icmp} onChange={(e) => setIcmp(e.target.checked)} />
               ICMP ping
@@ -313,6 +364,7 @@ export default function DevicesPage() {
                 <th className="p-3">Checks</th>
                 <th className="p-3">Latency</th>
                 <th className="p-3">SNMP</th>
+                <th className="p-3">Reading</th>
                 <th className="p-3">Location</th>
                 <th className="p-3">City</th>
                 <th className="p-3">Status</th>
@@ -346,6 +398,11 @@ export default function DevicesPage() {
                     <td className="p-3 font-mono text-[11px] text-muted-foreground">
                       {device.snmp_enabled ? (device.snmp_last_error ? "err" : "on") : "—"}
                     </td>
+                    <td className="p-3 font-mono text-xs">
+                      {device.last_sensor_value != null
+                        ? `${device.last_sensor_value}${device.last_sensor_unit || ""}`
+                        : "—"}
+                    </td>
                     <td className="p-3 text-muted-foreground">{device.location ?? "—"}</td>
                     <td className="p-3">
                       <CitySelect
@@ -365,6 +422,11 @@ export default function DevicesPage() {
                         <Button type="button" size="sm" variant="ghost" onClick={() => startEditSnmp(device)}>
                           SNMP
                         </Button>
+                        {device.type === "sensor" && (
+                          <Button type="button" size="sm" variant="ghost" onClick={() => startEditSensor(device)}>
+                            Sensor
+                          </Button>
+                        )}
                         <Button type="button" size="sm" variant="ghost" onClick={() => void openHistory(device.id)}>
                           Hist
                         </Button>
@@ -458,6 +520,39 @@ export default function DevicesPage() {
               Save
             </Button>
             <Button type="button" size="sm" variant="outline" onClick={() => setSnmpId(null)}>
+              Cancel
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {sensorId && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Edit sensor</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-end gap-3">
+            <label className="space-y-1 text-xs text-muted-foreground">
+              Kind
+              <select className={selectClass} value={editSensorKind} onChange={(e) => setEditSensorKind(e.target.value)}>
+                <option value="temperature">temperature</option>
+                <option value="humidity">humidity</option>
+                <option value="power">power</option>
+                <option value="other">other</option>
+              </select>
+            </label>
+            <label className="space-y-1 text-xs text-muted-foreground">
+              JSON path
+              <Input value={editSensorPath} onChange={(e) => setEditSensorPath(e.target.value)} className="w-[160px]" />
+            </label>
+            <label className="space-y-1 text-xs text-muted-foreground">
+              Unit
+              <Input value={editSensorUnit} onChange={(e) => setEditSensorUnit(e.target.value)} className="w-[80px]" />
+            </label>
+            <Button type="button" size="sm" onClick={() => void saveSensor()}>
+              Save
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => setSensorId(null)}>
               Cancel
             </Button>
           </CardContent>

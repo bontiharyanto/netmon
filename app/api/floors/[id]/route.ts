@@ -22,7 +22,16 @@ export async function GET(_req: Request, { params }: Params) {
       placements: {
         include: {
           device: {
-            select: { id: true, hostname: true, ip: true, type: true, status: true },
+            select: {
+              id: true,
+              hostname: true,
+              ip: true,
+              type: true,
+              status: true,
+              sensor_kind: true,
+              last_sensor_value: true,
+              last_sensor_unit: true,
+            },
           },
         },
         orderBy: { updated_at: "desc" },
