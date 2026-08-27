@@ -22,11 +22,10 @@ export default async function PortalLayout({ children }: { children: React.React
   });
 
   return (
-    <div className="min-h-screen">
+    <div className="flex h-screen min-h-0 flex-col">
       <IdleSessionGuard minutes={parseIdleMinutes(tenant?.idle_minutes)} />
-      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur">
+      <div className="sticky top-0 z-20 shrink-0 bg-background/80 backdrop-blur">
         <PasswordReminder />
-        <MassOutageTicker />
         <header className="border-b border-border">
           <div className="flex h-14 items-center justify-between px-4">
             <Logo />
@@ -43,7 +42,8 @@ export default async function PortalLayout({ children }: { children: React.React
           </div>
         </header>
       </div>
-      <main className="mx-auto max-w-6xl p-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 overflow-y-auto p-6">{children}</main>
+      <MassOutageTicker placement="bottom" />
     </div>
   );
 }

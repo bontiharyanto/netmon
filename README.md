@@ -27,6 +27,7 @@ Enterprise Network Monitoring System for **Cloud SaaS** and **on-premise**. One 
 | [Shared VPS](deploy/EDGE.md) | `netmon.click` behind WorkPulse Caddy (port 3008) |
 | [Architecture](docs/ARCHITECTURE.md) | Poller, tenancy, layout |
 | [RBAC](docs/RBAC.md) | Roles, portal vs NOC |
+| [Session security](docs/SESSION.md) | Idle auto-logout + absolute max |
 | [User guide](docs/USER-GUIDE.md) | Daily console |
 | [Monitor devices](docs/MONITORING.md) | Inventory, poller, agent, CCTV/NVR up/down, troubleshooting |
 | [Help in the app](docs/USER-GUIDE.md) | `/dashboard/help` searchable |

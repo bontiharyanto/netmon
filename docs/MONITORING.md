@@ -257,7 +257,7 @@ Acknowledge / resolve from **Alerts** (`/dashboard/alerts`). Viewers cannot writ
 | SLA | `/dashboard/sla` | 30-day uptime (from poller ticks) |
 | CMDB | `/dashboard/cmdb` | Asset tag, serial, owner. Optional NovaCRM sync: [CMDB.md](CMDB.md) |
 | Public status | `/status/{slug}` | No login |
-| Incident ticker | header | Auto on mass down, or custom text on **Security** |
+| Incident ticker | bottom sticky | Auto on mass down, or custom text on **Security** |
 
 Mass ticker: several devices down (or many firing alerts), or an operator-written line. [User guide](USER-GUIDE.md).
 
@@ -292,7 +292,7 @@ On-prem: `NEXTAUTH_URL` / `APP_URL` = the customer URL (or `http://IP:3000`). Wo
 
 ### Security (operators)
 
-- `/dashboard/security` — session idle, password rotation (default 30 days), 2FA
+- `/dashboard/security` — session idle, absolute max (`SESSION_MAX_HOURS`), password rotation (default 30 days), 2FA — [SESSION.md](SESSION.md)
 - `/dashboard/account` — own password
 
 ---

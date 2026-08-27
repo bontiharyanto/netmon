@@ -11,6 +11,7 @@ export const id = {
     draft: "Draf",
     new: "Baru",
     collapse: "Ciutkan",
+    expand: "Bentangkan",
   },
   nav: {
     monitor: "Monitor",
@@ -117,7 +118,7 @@ export const id = {
     saveFailed: "Tidak dapat menyimpan ticker",
     clear: "Hapus",
     title: "Teks berjalan insiden",
-    subtitle: "Ubah baris berjalan di bawah header. Operator juga bisa mengubahnya langsung dari ticker.",
+    subtitle: "Ubah baris berjalan di bawah konsol. Operator juga bisa mengubahnya langsung dari ticker.",
   },
   topology: {
     uploadTitle: "Unggah topologi jaringan",
@@ -159,12 +160,14 @@ export const id = {
   },
   session: {
     title: "Batas waktu sesi",
-    subtitle: "Keluar otomatis jika tidak ada ketikan, klik, atau gulir. Berlaku untuk tenant ini.",
-    never: "Tidak pernah",
+    subtitle:
+      "Keluar otomatis karena tidak ada aktivitas (per tenant). Masa sesi absolut juga dibatasi (default 8 jam) meskipun tetap aktif.",
+    never: "Tidak pernah (hanya idle)",
     minutes: "{n} menit",
-    warn: "Tidak ada aktivitas. Anda akan keluar dalam sekitar satu menit.",
+    warn: "Tidak ada aktivitas. Anda akan keluar dalam {n} detik.",
     stay: "Tetap masuk",
     saved: "Batas waktu sesi disimpan",
+    absolute: "Batas sesi absolut: {n} jam (SESSION_MAX_HOURS). Setelah itu harus masuk ulang.",
   },
   security: {
     totpTitle: "Autentikasi dua faktor",

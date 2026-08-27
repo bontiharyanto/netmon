@@ -9,9 +9,13 @@ import {
   isPasswordExpired,
   parsePasswordDays,
 } from "@/lib/password-policy";
+import { sessionMaxSeconds, parseIdleMinutes } from "@/lib/idle";
+
+const maxAge = sessionMaxSeconds();
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge, updateAge: Math.min(300, Math.floor(maxAge / 12)) },
+  jwt: { maxAge },
   secret: process.env.NEXTAUTH_SECRET ?? process.env.JWT_SECRET,
   pages: { signIn: "/login" },
   providers: [
@@ -72,7 +76,9 @@ export const authOptions: NextAuthOptions = {
         const live = email
           ? await prisma.user.findUnique({
               where: { email },
-              include: { tenant: { select: { slug: true, status: true, password_days: true } } },
+              include: {
+                tenant: { select: { slug: true, status: true, password_days: true, idle_minutes: true } },
+              },
             })
           : null;
 
@@ -86,6 +92,7 @@ export const authOptions: NextAuthOptions = {
           token.passwordDays = passwordDays;
           token.passwordExpired = isPasswordExpired(live.password_changed_at, passwordDays);
           token.passwordDaysLeft = daysUntilPasswordExpiry(live.password_changed_at, passwordDays);
+          token.idleMinutes = parseIdleMinutes(live.tenant.idle_minutes);
         }
       } catch {
         // Keep the existing JWT if Postgres is briefly unreachable.

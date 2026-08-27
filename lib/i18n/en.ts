@@ -11,6 +11,7 @@ export const en = {
     draft: "Draft",
     new: "New",
     collapse: "Collapse",
+    expand: "Expand",
   },
   nav: {
     monitor: "Monitor",
@@ -117,7 +118,7 @@ export const en = {
     saveFailed: "Unable to save ticker",
     clear: "Clear",
     title: "Incident ticker",
-    subtitle: "Edit the running line under the header. Operators can also edit it from the ticker itself.",
+    subtitle: "Edit the running line at the bottom of the console. Operators can also edit it from the ticker itself.",
   },
   topology: {
     uploadTitle: "Upload network topology",
@@ -159,12 +160,14 @@ export const en = {
   },
   session: {
     title: "Session timeout",
-    subtitle: "Sign out when nobody types, clicks, or scrolls. Applies to this tenant.",
-    never: "Never",
+    subtitle:
+      "Inactivity auto-logout for this tenant. Absolute session lifetime is also capped (default 8 hours) even while active.",
+    never: "Never (idle only)",
     minutes: "{n} minutes",
-    warn: "No activity. You will be signed out in about a minute.",
+    warn: "No activity. You will be signed out in {n}s.",
     stay: "Stay signed in",
     saved: "Session timeout saved",
+    absolute: "Absolute max session: {n} hours (SESSION_MAX_HOURS). Re-authentication required after that.",
   },
   security: {
     totpTitle: "Two-factor authentication",

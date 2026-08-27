@@ -17,6 +17,7 @@ export default function SecurityPage() {
   const [qr, setQr] = useState<string | null>(null);
   const [secret, setSecret] = useState("");
   const [idle, setIdle] = useState<IdleMinutes>(30);
+  const [sessionMaxHours, setSessionMaxHours] = useState(8);
   const [passwordDays, setPasswordDays] = useState<PasswordDays>(30);
   const [savingIdle, setSavingIdle] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
@@ -27,6 +28,7 @@ export default function SecurityPage() {
       .then((data) => {
         setIdle(parseIdleMinutes(data.idle_minutes));
         setPasswordDays(parsePasswordDays(data.password_days));
+        if (typeof data.session_max_hours === "number") setSessionMaxHours(data.session_max_hours);
       })
       .catch(() => undefined);
   }, []);
@@ -109,6 +111,9 @@ export default function SecurityPage() {
               {minutes === 0 ? t.session.never : formatMinutes(t.session.minutes, minutes)}
             </button>
           ))}
+          <p className="sm:col-span-2 text-xs text-muted-foreground">
+            {t.session.absolute.replace("{n}", String(sessionMaxHours))}
+          </p>
         </CardContent>
       </Card>
       <Card>

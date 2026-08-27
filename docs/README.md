@@ -14,6 +14,7 @@ Start here, then open the guide that matches the job.
 | [Shared VPS edge](../deploy/EDGE.md) | Engineer | WorkPulse Caddy, port 3008, `netmon.click` |
 | [Architecture](ARCHITECTURE.md) | Engineer | Stack, poller, tenancy |
 | [RBAC](RBAC.md) | Admin | Roles and permissions |
+| [Session security](SESSION.md) | Admin / engineer | Idle logout + absolute session max |
 | [User guide](USER-GUIDE.md) | NOC / customer | Daily console and portal |
 | [Monitor devices](MONITORING.md) | Operator | Register devices, poller vs agent, configuration |
 | [Database](DATABASE.md) | Engineer | Indexes, poller scan, metrics growth |

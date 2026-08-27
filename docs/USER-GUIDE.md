@@ -43,17 +43,17 @@ Sign in as admin or operator.
 | --- | --- | --- |
 | Users | `/dashboard/users` | admin+: add, edit name/email/role, reset password, delete (not self / last admin) |
 | Settings | `/dashboard/settings` | Channels, Ticketing, AI |
-| Security | `/dashboard/security` | TOTP 2FA, session idle timeout, password rotation (30 days) |
+| Security | `/dashboard/security` | TOTP 2FA, session idle timeout (per tenant), password rotation (30 days). Absolute session max is `SESSION_MAX_HOURS` (default 8h) — [SESSION.md](SESSION.md). |
 | Account | `/dashboard/account` | Change own password (required when older than 30 days) |
 | Platform | `/admin` | superadmin only |
 
 Header: global search (`⌘K` / `Ctrl+K`), **EN | ID**, theme, **notification bell**, **Account** (change your own password), portal link, sign out.
 
-Idle timeout is configured on **Security** (Never / 15 / 30 / 60 minutes). No keyboard, click, or scroll signs the session out.
+Idle timeout is configured on **Security** (Never / 15 / 30 / 60 minutes). No keyboard, click, scroll, or pointer movement signs the session out after that window (with a 60s warning). See [SESSION.md](SESSION.md). Absolute lifetime still ends the JWT after `SESSION_MAX_HOURS` even if the console stays active.
 
 Passwords expire every **30 days** by default (Never / 30 / 60 / 90 on Security). NETMON reminds you 7 days before, then blocks the rest of the app until you set a new password on **Account**.
 
-A **running incident line** appears under the header when there is a mass outage, or when an operator writes a custom message (**Security** → Incident ticker, or **Edit** on the line itself). It links to Alerts. Portal viewers see the same line.
+A **running incident line** sticks to the **bottom** of the console when there is a mass outage, or when an operator writes a custom message (**Security** → Incident ticker). It links to Alerts. Portal viewers see the same line.
 
 Change the seed password on first login (**Account**). Superadmin on production is `admin@netmon.click`.
 

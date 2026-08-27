@@ -29,5 +29,6 @@ declare module "next-auth/jwt" {
     passwordDays?: number;
     passwordExpired?: boolean;
     passwordDaysLeft?: number;
+    idleMinutes?: number;
   }
 }

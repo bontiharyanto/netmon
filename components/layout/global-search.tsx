@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Search } from "lucide-react";
@@ -31,6 +31,7 @@ export function GlobalSearch() {
   const viewer = data?.user.role === "viewer";
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const matches = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -60,20 +61,30 @@ export function GlobalSearch() {
   }, [query, locale, viewer]);
 
   useEffect(() => {
+    function focusSearch() {
+      setOpen(true);
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setOpen(true);
+        focusSearch();
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("netmon:open-search", focusSearch);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("netmon:open-search", focusSearch);
+    };
   }, []);
 
   return (
     <div className="relative w-full max-w-xl">
       <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
+        ref={inputRef}
         value={query}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}

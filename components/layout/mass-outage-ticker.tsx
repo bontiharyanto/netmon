@@ -6,13 +6,16 @@ import { useSession } from "next-auth/react";
 import { useI18n } from "@/components/layout/locale-provider";
 import { TickerEditorForm } from "@/components/layout/ticker-editor";
 import type { TickerState } from "@/lib/outage";
+import { cn } from "@/lib/utils";
 
 type Payload = {
   ticker?: TickerState;
   canEdit?: boolean;
 };
 
-export function MassOutageTicker() {
+type Placement = "top" | "bottom";
+
+export function MassOutageTicker({ placement = "bottom" }: { placement?: Placement }) {
   const { t } = useI18n();
   const { data } = useSession();
   const [ticker, setTicker] = useState<TickerState | null>(null);
@@ -55,11 +58,18 @@ export function MassOutageTicker() {
 
   const visible = Boolean(ticker?.visible && ticker.text);
   if (!loaded || (!visible && !canEdit)) return null;
+  // Idle announce stays on Security — do not reserve chrome when nothing is firing.
+  if (!visible && !editing) return null;
 
-  return (
-    <div>
+  const shell = (
+    <div
+      className={cn(
+        placement === "bottom" && "shrink-0 border-t border-destructive/40 bg-card/95 backdrop-blur",
+        placement === "top" && "border-b border-destructive/40",
+      )}
+    >
       {visible && ticker ? (
-        <div className="flex items-center gap-3 border-b border-destructive/40 bg-destructive/10 px-3 py-1.5 text-destructive">
+        <div className="flex items-center gap-3 bg-destructive/10 px-3 py-1.5 text-destructive">
           <span className="shrink-0 rounded-sm bg-destructive/15 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide">
             {t.outage.badge}
           </span>
@@ -84,19 +94,9 @@ export function MassOutageTicker() {
             {t.outage.open}
           </Link>
         </div>
-      ) : (
-        <div className="flex items-center justify-end border-b border-border px-3 py-1">
-          <button
-            type="button"
-            className="text-[11px] text-muted-foreground hover:text-foreground"
-            onClick={() => setEditing((value) => !value)}
-          >
-            {editing ? t.common.cancel : t.outage.announce}
-          </button>
-        </div>
-      )}
+      ) : null}
       {editing && canEdit && ticker && (
-        <div className="border-b border-border bg-muted/20 px-3 py-3">
+        <div className="border-t border-border bg-muted/20 px-3 py-3">
           <TickerEditorForm
             key={`${ticker.custom}:${ticker.enabled}`}
             custom={ticker.custom}
@@ -111,4 +111,6 @@ export function MassOutageTicker() {
       )}
     </div>
   );
+
+  return shell;
 }

@@ -92,9 +92,10 @@ See `.env.example`. Required:
 | `REDIS_URL` | Queues / poller |
 | `JWT_SECRET` | App tokens |
 | `ENCRYPT_KEY` | Channel and connector secrets at rest |
-| `NEXTAUTH_SECRET` | Session |
+| `NEXTAUTH_SECRET` | Session (+ idle cookie HMAC) |
 | `NEXTAUTH_URL` | Auth origin |
 | `APP_URL` | Canonical URL (inbound webhooks, agent script) |
+| `SESSION_MAX_HOURS` | Absolute JWT lifetime (1–24, default 8). Idle is per tenant on Security. |
 | `IS_SAAS` | `true` / `false` |
 | `SERVER_IP` | Cloud host (optional on-prem) |
 | `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | Optional LLM |

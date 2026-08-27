@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { writeAudit } from "@/lib/audit";
-import { parseIdleMinutes } from "@/lib/idle";
+import { parseIdleMinutes, sessionMaxHours } from "@/lib/idle";
 import { parsePasswordDays } from "@/lib/password-policy";
 
 export async function GET() {
@@ -15,6 +15,7 @@ export async function GET() {
   return NextResponse.json({
     idle_minutes: parseIdleMinutes(tenant?.idle_minutes),
     password_days: parsePasswordDays(tenant?.password_days),
+    session_max_hours: sessionMaxHours(),
   });
 }
 
@@ -44,6 +45,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({
       idle_minutes: parseIdleMinutes(tenant.idle_minutes),
       password_days: parsePasswordDays(tenant.password_days),
+      session_max_hours: sessionMaxHours(),
     });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed" }, { status: 500 });

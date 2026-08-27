@@ -179,6 +179,20 @@ export const HELP_ARTICLES: HelpArticle[] = [
     },
   },
   {
+    id: "session-idle",
+    tags: ["session", "idle", "timeout", "logout", "security", "inactivity"],
+    nocHref: "/dashboard/security",
+    portalHref: "/portal/help",
+    title: {
+      en: "Session timeout",
+      id: "Batas waktu sesi",
+    },
+    body: {
+      en: "Security → Session timeout (Never / 15 / 30 / 60). After inactivity NETMON warns for 60s then signs you out. All tabs logout together. Absolute max is SESSION_MAX_HOURS (default 8) even if you stay active. Prefer 15–30 minutes on shared NOC desks.",
+      id: "Security → Batas waktu sesi (Tidak pernah / 15 / 30 / 60). Setelah tidak aktif NETMON memperingatkan 60 detik lalu keluar. Semua tab ikut keluar. Batas absolut SESSION_MAX_HOURS (default 8 jam) meskipun tetap aktif. Prefer 15–30 menit di meja NOC bersama.",
+    },
+  },
+  {
     id: "ticker",
     tags: ["ticker", "running text", "incident", "edit"],
     nocHref: "/dashboard/security",
@@ -188,8 +202,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
       id: "Teks berjalan insiden",
     },
     body: {
-      en: "A line under the header appears on mass outage, or when an operator saves custom text (Edit on the ticker, or Security → Incident ticker). Check “show even without mass outage” to keep it visible.",
-      id: "Baris di bawah header muncul saat gangguan massal, atau jika operator menyimpan teks kustom (Edit di ticker, atau Security → Incident ticker). Centang tampilkan meski tidak ada gangguan massal agar tetap terlihat.",
+      en: "A sticky line at the bottom of the console appears on mass outage, or when an operator saves custom text (Edit on the ticker, or Security → Incident ticker). Check “show even without mass outage” to keep it visible.",
+      id: "Baris sticky di bawah konsol muncul saat gangguan massal, atau jika operator menyimpan teks kustom (Edit di ticker, atau Security → Incident ticker). Centang tampilkan meski tidak ada gangguan massal agar tetap terlihat.",
     },
   },
   {

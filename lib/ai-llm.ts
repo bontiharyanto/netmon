@@ -93,6 +93,16 @@ export async function testLlmEndpoint(runtime: LlmRuntime) {
   }
 }
 
+export function sanitizeLlmAnswer(raw?: string | null) {
+  if (!raw) return "";
+  let text = raw.replace(/\r\n/g, "\n");
+  text = text.replace(/<think\b[^>]*>[\s\S]*?<\/think>/gi, "");
+  text = text.replace(/<thought\b[^>]*>[\s\S]*?<\/thought>/gi, "");
+  text = text.replace(/```(?:thinking|reasoning|analysis)[\s\S]*?```/gi, "");
+  text = text.replace(/<think\b[^>]*>[\s\S]*$/gi, "");
+  return text.replace(/\n{3,}/g, "\n\n").trim();
+}
+
 export async function askOpenAiCompatible({
   runtime,
   question,
@@ -106,23 +116,26 @@ export async function askOpenAiCompatible({
 }) {
   const timeoutMs = isLocalLlmProvider(runtime.provider) ? 90000 : 25000;
   const url = `${openaiBase(runtime.baseUrl)}/chat/completions`;
+  const body: Record<string, unknown> = {
+    model: runtime.model,
+    temperature: 0.2,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are NETMON AI, a concise NOC copilot. Use only the tenant context. Never reveal secrets, tokens, or other tenants. Answer in the same language as the question. Professional and short. Reply with the operator answer only — never output <think> tags, chain-of-thought, or analysis outlines.",
+      },
+      { role: "user", content: `Context:\n${context}\n\nInventory:\n${inventory}\n\nQuestion: ${question}` },
+    ],
+  };
+  if (runtime.provider === "groq") body.include_reasoning = false;
+
   const { res, json } = await fetchJson(
     url,
     {
       method: "POST",
       headers: headers(runtime.apiKey || (isLocalLlmProvider(runtime.provider) ? "ollama" : "")),
-      body: JSON.stringify({
-        model: runtime.model,
-        temperature: 0.2,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are NETMON AI, a concise NOC copilot. Use only the tenant context. Never reveal secrets, tokens, or other tenants. English, professional, short.",
-          },
-          { role: "user", content: `Context:\n${context}\n\nInventory:\n${inventory}\n\nQuestion: ${question}` },
-        ],
-      }),
+      body: JSON.stringify(body),
     },
     timeoutMs,
   );
@@ -132,5 +145,6 @@ export async function askOpenAiCompatible({
     throw new Error(err || `LLM returned ${res.status}`);
   }
 
-  return (json as { choices?: { message?: { content?: string } }[] })?.choices?.[0]?.message?.content;
+  const message = (json as { choices?: { message?: { content?: string } }[] })?.choices?.[0]?.message;
+  return sanitizeLlmAnswer(message?.content);
 }
