@@ -193,6 +193,20 @@ export const HELP_ARTICLES: HelpArticle[] = [
     },
   },
   {
+    id: "snmp",
+    tags: ["snmp", "oid", "community", "v2c", "metric", "poll"],
+    nocHref: "/dashboard/devices",
+    portalHref: "/portal/assets",
+    title: {
+      en: "SNMP GET",
+      id: "SNMP GET",
+    },
+    body: {
+      en: "Inventory → SNMP enables v2c GET with a system or tenant OID profile. Community is encrypted; API returns masked. Metrics prefer agent, then SNMP, then jitter. Failure does not force device_down. Details: docs/SNMP.md.",
+      id: "Inventory → SNMP mengaktifkan GET v2c dengan profil OID sistem atau tenant. Community dienkripsi; API mengembalikan masked. Metric prefer agent, lalu SNMP, lalu jitter. Kegagalan tidak memaksa device_down. Detail: docs/SNMP.md.",
+    },
+  },
+  {
     id: "floors",
     tags: ["floor", "denah", "lantai", "gedung", "building", "plan", "pin", "jpg", "jpeg"],
     nocHref: "/dashboard/floors",

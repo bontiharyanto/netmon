@@ -18,8 +18,10 @@ Login errors: wrong password vs `OTP_REQUIRED` vs `DATABASE_UNAVAILABLE` (Postgr
 | Method | Path | Permission |
 | --- | --- | --- |
 | GET/POST | `/api/devices` | assets · create may set `display_name`, `checks`, `skip_poller_when_agent` |
-| PATCH | `/api/devices/{id}` | assets.write · city / location / checks / display_name / skip_poller_when_agent |
+| PATCH | `/api/devices/{id}` | assets.write · city / checks / SNMP (community write-only, masked on read) |
 | GET | `/api/devices/{id}/checks` | assets.read · recent check samples (latency history) |
+| GET/POST | `/api/snmp/profiles` | assets · system + tenant OID profiles |
+| PATCH/DELETE | `/api/snmp/profiles/{id}` | assets.write · tenant profiles only |
 | POST | `/api/devices/bulk` | bulk.actions |
 | GET | `/api/alerts` | alert.read |
 | POST | `/api/alerts` | alert.write |

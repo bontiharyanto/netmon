@@ -45,6 +45,7 @@ model tenant {
   check_results      device_check_result[]
   alert_rules        alert_rule[]
   maintenance_windows maintenance_window[]
+  snmp_profiles      snmp_profile[]
 }
 
 model user {
@@ -86,6 +87,18 @@ model device {
   last_check_latency_ms Int?
   last_check_detail Json?
   last_seen     DateTime?
+  snmp_enabled   Boolean @default(false)
+  snmp_version   String?  /// v2c | v3
+  snmp_community String?  /// encrypted at rest
+  snmp_port      Int     @default(161)
+  snmp_profile_id String?
+  snmp_v3_user   String?
+  snmp_v3_auth_proto String?
+  snmp_v3_auth_key   String?  /// encrypted
+  snmp_v3_priv_proto String?
+  snmp_v3_priv_key   String?  /// encrypted
+  snmp_last_error String?
+  snmp_last_at    DateTime?
   created_at    DateTime      @default(now())
   tenant        tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   alerts        alert[]
@@ -93,6 +106,7 @@ model device {
   metrics       metric[]
   check_results device_check_result[]
   alert_rules   alert_rule[]
+  snmp_profile  snmp_profile? @relation(fields: [snmp_profile_id], references: [id], onDelete: SetNull)
   links_from    device_link[] @relation("from_device")
   links_to      device_link[] @relation("to_device")
   agent         agent?
@@ -104,6 +118,7 @@ model device {
   @@index([tenant_id])
   @@index([tenant_id, status])
   @@index([tenant_id, type])
+  @@index([snmp_profile_id])
 }
 
 model device_check_result {
@@ -226,9 +241,23 @@ model metric {
   cpu_percent  Float
   ram_percent  Float
   disk_percent Float
+  metric_extra Json?
   device       device   @relation(fields: [device_id], references: [id], onDelete: Cascade)
 
   @@index([device_id, ts])
+}
+
+model snmp_profile {
+  id         String   @id @default(cuid())
+  tenant_id  String?
+  name       String
+  /// [{ key, oid, metric: cpu_percent|ram_percent|disk_percent|custom, scale? }]
+  oids       Json
+  created_at DateTime @default(now())
+  tenant     tenant?  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  devices    device[]
+
+  @@index([tenant_id])
 }
 
 model dashboard {

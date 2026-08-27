@@ -132,7 +132,7 @@ On each tick the worker:
 
 1. TCP to `device.ip:80`.
 2. Sets `device.status` to `up` or `down`.
-3. Writes a `metric` sample (CPU/RAM/disk are **synthetic jitter** while up — not SNMP).
+3. Writes a `metric` sample: **agent** if fresh, else **SNMP GET** if enabled, else **synthetic jitter** (not real host load). See [SNMP.md](SNMP.md).
 4. Updates `sla.uptime_30d`.
 5. Evaluates **alert rules** (default: `device_down` critical). Respects **maintenance windows** (suppress alert/notify/ticket).
 6. If condition clears: resolve matching firing alerts, recover comment on tickets.

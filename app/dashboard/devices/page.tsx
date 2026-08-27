@@ -29,7 +29,16 @@ type Device = {
   skip_poller_when_agent?: boolean;
   last_check_latency_ms?: number | null;
   last_check_at?: string | null;
+  snmp_enabled?: boolean;
+  snmp_version?: string | null;
+  snmp_community?: string | null;
+  snmp_community_set?: boolean;
+  snmp_port?: number;
+  snmp_profile_id?: string | null;
+  snmp_last_error?: string | null;
 };
+
+type SnmpProfile = { id: string; name: string; system?: boolean };
 
 function CitySelect({
   name,
@@ -81,10 +90,18 @@ export default function DevicesPage() {
   const [history, setHistory] = useState<
     Array<{ id: string; ts: string; status: string; latency_ms: number | null; detail: unknown }>
   >([]);
+  const [snmpId, setSnmpId] = useState<string | null>(null);
+  const [snmpEnabled, setSnmpEnabled] = useState(false);
+  const [snmpVersion, setSnmpVersion] = useState("v2c");
+  const [snmpCommunity, setSnmpCommunity] = useState("");
+  const [snmpPort, setSnmpPort] = useState("161");
+  const [snmpProfileId, setSnmpProfileId] = useState("");
+  const [profiles, setProfiles] = useState<SnmpProfile[]>([]);
 
   async function load() {
-    const res = await fetch("/api/devices");
-    setDevices(await res.json());
+    const [devRes, profRes] = await Promise.all([fetch("/api/devices"), fetch("/api/snmp/profiles")]);
+    if (devRes.ok) setDevices(await devRes.json());
+    if (profRes.ok) setProfiles(await profRes.json());
   }
 
   useEffect(() => {
@@ -180,6 +197,37 @@ export default function DevicesPage() {
     setHistory(await res.json());
   }
 
+  function startEditSnmp(device: Device) {
+    setSnmpId(device.id);
+    setSnmpEnabled(Boolean(device.snmp_enabled));
+    setSnmpVersion(device.snmp_version || "v2c");
+    setSnmpCommunity(device.snmp_community_set ? "••••••••" : "");
+    setSnmpPort(String(device.snmp_port ?? 161));
+    setSnmpProfileId(device.snmp_profile_id ?? "");
+  }
+
+  async function saveSnmp() {
+    if (!snmpId) return;
+    const res = await fetch(`/api/devices/${snmpId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        snmp_enabled: snmpEnabled,
+        snmp_version: snmpVersion,
+        snmp_community: snmpCommunity || null,
+        snmp_port: Number(snmpPort) || 161,
+        snmp_profile_id: snmpProfileId || null,
+      }),
+    });
+    if (!res.ok) {
+      toast.error("Unable to update SNMP");
+      return;
+    }
+    toast.success("SNMP updated");
+    setSnmpId(null);
+    load();
+  }
+
   async function bulk(action: "delete" | "set_unknown") {
     const res = await fetch("/api/devices/bulk", {
       method: "POST",
@@ -264,6 +312,7 @@ export default function DevicesPage() {
                 <th className="p-3">Type</th>
                 <th className="p-3">Checks</th>
                 <th className="p-3">Latency</th>
+                <th className="p-3">SNMP</th>
                 <th className="p-3">Location</th>
                 <th className="p-3">City</th>
                 <th className="p-3">Status</th>
@@ -294,6 +343,9 @@ export default function DevicesPage() {
                     <td className="p-3 font-mono text-xs">
                       {device.last_check_latency_ms != null ? `${device.last_check_latency_ms} ms` : "—"}
                     </td>
+                    <td className="p-3 font-mono text-[11px] text-muted-foreground">
+                      {device.snmp_enabled ? (device.snmp_last_error ? "err" : "on") : "—"}
+                    </td>
                     <td className="p-3 text-muted-foreground">{device.location ?? "—"}</td>
                     <td className="p-3">
                       <CitySelect
@@ -309,6 +361,9 @@ export default function DevicesPage() {
                       <div className="flex gap-1">
                         <Button type="button" size="sm" variant="ghost" onClick={() => startEditChecks(device)}>
                           Checks
+                        </Button>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => startEditSnmp(device)}>
+                          SNMP
                         </Button>
                         <Button type="button" size="sm" variant="ghost" onClick={() => void openHistory(device.id)}>
                           Hist
@@ -349,6 +404,60 @@ export default function DevicesPage() {
               Save
             </Button>
             <Button type="button" size="sm" variant="outline" onClick={() => setEditId(null)}>
+              Cancel
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {snmpId && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Edit SNMP</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-end gap-3">
+            <label className="flex items-center gap-2 pb-2 text-sm text-muted-foreground">
+              <input type="checkbox" checked={snmpEnabled} onChange={(e) => setSnmpEnabled(e.target.checked)} />
+              Enabled
+            </label>
+            <label className="space-y-1 text-xs text-muted-foreground">
+              Version
+              <select className={selectClass} value={snmpVersion} onChange={(e) => setSnmpVersion(e.target.value)}>
+                <option value="v2c">v2c</option>
+                <option value="v3">v3 (not polled yet)</option>
+              </select>
+            </label>
+            <label className="space-y-1 text-xs text-muted-foreground">
+              Community
+              <Input
+                value={snmpCommunity}
+                onChange={(e) => setSnmpCommunity(e.target.value)}
+                className="w-[160px]"
+                placeholder="public"
+                type="password"
+                autoComplete="off"
+              />
+            </label>
+            <label className="space-y-1 text-xs text-muted-foreground">
+              Port
+              <Input value={snmpPort} onChange={(e) => setSnmpPort(e.target.value)} className="w-[90px]" />
+            </label>
+            <label className="space-y-1 text-xs text-muted-foreground">
+              Profile
+              <select className={selectClass} value={snmpProfileId} onChange={(e) => setSnmpProfileId(e.target.value)}>
+                <option value="">Select…</option>
+                {profiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                    {p.system ? " (system)" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button type="button" size="sm" onClick={() => void saveSnmp()}>
+              Save
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => setSnmpId(null)}>
               Cancel
             </Button>
           </CardContent>

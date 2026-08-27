@@ -5,6 +5,7 @@ export const ALERT_EVENTS = [
   "metric_cpu",
   "metric_ram",
   "metric_disk",
+  "snmp_threshold",
 ] as const;
 
 export type AlertEvent = (typeof ALERT_EVENTS)[number];

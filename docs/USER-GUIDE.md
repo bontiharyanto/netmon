@@ -26,7 +26,7 @@ Sign in as admin or operator.
 
 | Page | Path | What to do |
 | --- | --- | --- |
-| Inventory | `/dashboard/devices` | Hostname + IP. Type catalog. **Checks**: TCP ports / HTTP URL / ICMP. Latency history. Skip poller when agent fresh. City for map. Bulk mark / delete |
+| Inventory | `/dashboard/devices` | Hostname + IP. **Checks** + **SNMP** (v2c GET profiles). Latency history. Skip poller when agent fresh. City for map. Bulk mark / delete |
 | Floor plans | `/dashboard/floors` | Upload JPG/PNG denah; pin devices (x%, y%); optional **zone** / **rack**. Portal read-only. |
 | CMDB | `/dashboard/cmdb` | CIs + **relations** (App runs_on Server, App backed_by Database). Optional NovaCRM sync. |
 | Import | `/dashboard/import` | CSV / Excel inventory |

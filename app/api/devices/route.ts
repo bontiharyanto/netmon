@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/rbac";
 import { writeAudit } from "@/lib/audit";
 import { normalizeCityInput, resolveDeviceCity } from "@/lib/geo/indonesia-cities";
 import { defaultChecksForType, parseDeviceChecks } from "@/lib/device-checks";
+import { publicDevice } from "@/lib/snmp-secrets";
 
 const httpCheckSchema = z.object({
   url: z.string().url(),
@@ -38,7 +39,7 @@ export async function GET() {
     where: { tenant_id: gate.session.user.tenantId },
     orderBy: { hostname: "asc" },
   });
-  return NextResponse.json(devices);
+  return NextResponse.json(devices.map((d) => publicDevice(d as unknown as Record<string, unknown>)));
 }
 
 export async function POST(req: Request) {

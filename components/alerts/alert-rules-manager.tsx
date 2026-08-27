@@ -29,6 +29,9 @@ const selectClass =
 function thresholdHint(event: string, config: Record<string, unknown>) {
   if (event === "high_latency") return `≥ ${Number(config.ms ?? 500)} ms`;
   if (event.startsWith("metric_")) return `≥ ${Number(config.percent ?? 90)}%`;
+  if (event === "snmp_threshold") {
+    return `${String(config.oid_key ?? "?")} ${String(config.op ?? ">")} ${Number(config.value ?? 0)}`;
+  }
   return "—";
 }
 
@@ -41,6 +44,7 @@ export function AlertRulesManager({ canWrite }: { canWrite: boolean }) {
   const [deviceId, setDeviceId] = useState("");
   const [deviceType, setDeviceType] = useState("");
   const [threshold, setThreshold] = useState("500");
+  const [oidKey, setOidKey] = useState("ifOperStatus");
   const [forSeconds, setForSeconds] = useState("0");
 
   async function load() {
@@ -59,6 +63,9 @@ export function AlertRulesManager({ canWrite }: { canWrite: boolean }) {
   function buildConfig() {
     if (event === "high_latency") return { ms: Number(threshold) || 500 };
     if (event.startsWith("metric_")) return { percent: Number(threshold) || 90 };
+    if (event === "snmp_threshold") {
+      return { oid_key: oidKey.trim() || "value", op: ">", value: Number(threshold) || 0 };
+    }
     return {};
   }
 
@@ -167,9 +174,15 @@ export function AlertRulesManager({ canWrite }: { canWrite: boolean }) {
               <Input value={deviceType} onChange={(e) => setDeviceType(e.target.value)} placeholder="switch / application" />
             </label>
             <label className="space-y-1 text-xs text-muted-foreground">
-              Threshold (ms or %)
+              Threshold (ms, %, or SNMP value)
               <Input value={threshold} onChange={(e) => setThreshold(e.target.value)} />
             </label>
+            {event === "snmp_threshold" && (
+              <label className="space-y-1 text-xs text-muted-foreground">
+                SNMP oid_key
+                <Input value={oidKey} onChange={(e) => setOidKey(e.target.value)} placeholder="ifOperStatus" />
+              </label>
+            )}
             <label className="space-y-1 text-xs text-muted-foreground">
               For seconds (anti-flap)
               <Input value={forSeconds} onChange={(e) => setForSeconds(e.target.value)} />

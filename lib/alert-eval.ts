@@ -115,10 +115,17 @@ function ruleMatchesDevice(rule: RuleRow, device: DeviceCtx) {
   return true;
 }
 
+type MetricCtx = {
+  cpu_percent: number;
+  ram_percent: number;
+  disk_percent: number;
+  metric_extra?: Record<string, number> | null;
+};
+
 function conditionMet(
   rule: RuleRow,
   device: DeviceCtx,
-  metric: { cpu_percent: number; ram_percent: number; disk_percent: number } | null,
+  metric: MetricCtx | null,
 ): { ok: boolean; message: string } {
   const cfg = asRecord(rule.config);
   switch (rule.event) {
@@ -163,6 +170,24 @@ function conditionMet(
         ok: value != null && value >= percent,
         message: `Disk ${value?.toFixed(1) ?? "—"}% ≥ ${percent}%`,
       };
+    }
+    case "snmp_threshold": {
+      const key = String(cfg.oid_key ?? "");
+      const op = String(cfg.op ?? ">");
+      const threshold = Number(cfg.value ?? 0);
+      const value = metric?.metric_extra?.[key];
+      if (value == null || !key) return { ok: false, message: "" };
+      const ok =
+        op === ">="
+          ? value >= threshold
+          : op === "<"
+            ? value < threshold
+            : op === "<="
+              ? value <= threshold
+              : op === "=="
+                ? value === threshold
+                : value > threshold;
+      return { ok, message: `SNMP ${key}=${value} ${op} ${threshold}` };
     }
     default:
       return { ok: false, message: "" };
@@ -258,7 +283,7 @@ async function fireRule(
  */
 export async function evaluateDeviceAlerts(
   device: DeviceCtx,
-  metric: { cpu_percent: number; ram_percent: number; disk_percent: number } | null,
+  metric: MetricCtx | null,
 ) {
   await ensureDefaultDeviceDownRule(device.tenant_id);
 

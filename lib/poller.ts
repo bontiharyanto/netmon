@@ -2,6 +2,9 @@ import net from "net";
 import { prisma } from "@/lib/prisma";
 import { parseDeviceChecks, type DeviceChecks } from "@/lib/device-checks";
 import { evaluateDeviceAlerts } from "@/lib/alert-eval";
+import { pollSnmp } from "@/lib/snmp";
+import { parseSnmpOids } from "@/lib/snmp-profiles";
+import { Prisma } from "@prisma/client";
 
 const CHECK_HISTORY_KEEP = 50;
 const AGENT_FRESH_MS = 3 * 60 * 1000;
@@ -134,7 +137,10 @@ async function persistCheckSample(
 export async function pollDevice(deviceId: string) {
   const device = await prisma.device.findUnique({
     where: { id: deviceId },
-    include: { agent: { select: { last_seen: true, status: true } } },
+    include: {
+      agent: { select: { last_seen: true, status: true } },
+      snmp_profile: { select: { id: true, oids: true } },
+    },
   });
   if (!device) return null;
 
@@ -168,7 +174,14 @@ export async function pollDevice(deviceId: string) {
         status: "up",
         last_check_latency_ms: 0,
       },
-      metric,
+      metric
+        ? {
+            cpu_percent: metric.cpu_percent,
+            ram_percent: metric.ram_percent,
+            disk_percent: metric.disk_percent,
+            metric_extra: asExtra(metric.metric_extra),
+          }
+        : null,
     );
     return { id: device.id, status: "up", skipped: true, results: [] as CheckResult[] };
   }
@@ -195,12 +208,45 @@ export async function pollDevice(deviceId: string) {
 
   let latestMetric = recentAgentMetric;
   if (!recentAgentMetric || Date.now() - recentAgentMetric.ts.getTime() > 90_000) {
+    let cpu = status === "down" ? 0 : jitter(28);
+    let ram = status === "down" ? 0 : jitter(46);
+    let disk = status === "down" ? 0 : jitter(61, 4);
+    let metricExtra: Record<string, number> | undefined;
+    let source: "agent" | "snmp" | "jitter" = "jitter";
+
+    if (device.snmp_enabled && device.snmp_profile) {
+      const snmp = await pollSnmp({
+        ip: device.ip,
+        port: device.snmp_port,
+        version: device.snmp_version,
+        communityEncrypted: device.snmp_community,
+        oids: parseSnmpOids(device.snmp_profile.oids),
+      });
+      await prisma.device.update({
+        where: { id: device.id },
+        data: {
+          snmp_last_at: new Date(),
+          snmp_last_error: snmp.ok ? null : snmp.error ?? "SNMP failed",
+        },
+      });
+      if (snmp.ok) {
+        source = "snmp";
+        if (snmp.cpu_percent != null) cpu = snmp.cpu_percent;
+        if (snmp.ram_percent != null) ram = snmp.ram_percent;
+        if (snmp.disk_percent != null) disk = snmp.disk_percent;
+        metricExtra = { ...snmp.extra, __snmp_ms: snmp.ms };
+      }
+    }
+
     latestMetric = await prisma.metric.create({
       data: {
         device_id: device.id,
-        cpu_percent: status === "down" ? 0 : jitter(28),
-        ram_percent: status === "down" ? 0 : jitter(46),
-        disk_percent: status === "down" ? 0 : jitter(61, 4),
+        cpu_percent: cpu,
+        ram_percent: ram,
+        disk_percent: disk,
+        metric_extra: metricExtra
+          ? ({ ...metricExtra, __source: source } as Prisma.InputJsonValue)
+          : ({ __source: source } as Prisma.InputJsonValue),
       },
     });
   }
@@ -234,11 +280,21 @@ export async function pollDevice(deviceId: string) {
           cpu_percent: latestMetric.cpu_percent,
           ram_percent: latestMetric.ram_percent,
           disk_percent: latestMetric.disk_percent,
+          metric_extra: asExtra(latestMetric.metric_extra),
         }
       : null,
   );
 
   return { id: device.id, status, results };
+}
+
+function asExtra(value: unknown): Record<string, number> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof v === "number" && Number.isFinite(v)) out[k] = v;
+  }
+  return out;
 }
 
 export async function pollAllDevices() {
