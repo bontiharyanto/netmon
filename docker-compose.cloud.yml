@@ -1,6 +1,7 @@
 services:
   traefik:
-    image: traefik:v3.0
+    # v3.6.1+ negotiates Docker API (required for Docker Engine 29+)
+    image: traefik:v3.6.1
     command:
       - "--api.dashboard=true"
       - "--providers.docker=true"
