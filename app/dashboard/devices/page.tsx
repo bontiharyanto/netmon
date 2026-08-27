@@ -25,6 +25,10 @@ type Device = {
   location?: string | null;
   city?: string | null;
   checks?: unknown;
+  display_name?: string | null;
+  skip_poller_when_agent?: boolean;
+  last_check_latency_ms?: number | null;
+  last_check_at?: string | null;
 };
 
 function CitySelect({
@@ -72,6 +76,11 @@ export default function DevicesPage() {
   const [editTcp, setEditTcp] = useState("");
   const [editHttp, setEditHttp] = useState("");
   const [editIcmp, setEditIcmp] = useState(false);
+  const [editSkipAgent, setEditSkipAgent] = useState(false);
+  const [historyId, setHistoryId] = useState<string | null>(null);
+  const [history, setHistory] = useState<
+    Array<{ id: string; ts: string; status: string; latency_ms: number | null; detail: unknown }>
+  >([]);
 
   async function load() {
     const res = await fetch("/api/devices");
@@ -137,6 +146,7 @@ export default function DevicesPage() {
     setEditTcp(checks.tcp.join(","));
     setEditHttp(checks.http[0]?.url ?? "");
     setEditIcmp(Boolean(checks.icmp));
+    setEditSkipAgent(Boolean(device.skip_poller_when_agent));
   }
 
   async function saveChecks() {
@@ -146,7 +156,10 @@ export default function DevicesPage() {
     const res = await fetch(`/api/devices/${editId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ checks: { tcp, http, icmp: editIcmp } }),
+      body: JSON.stringify({
+        checks: { tcp, http, icmp: editIcmp },
+        skip_poller_when_agent: editSkipAgent,
+      }),
     });
     if (!res.ok) {
       toast.error("Unable to update checks");
@@ -155,6 +168,16 @@ export default function DevicesPage() {
     toast.success("Checks updated");
     setEditId(null);
     load();
+  }
+
+  async function openHistory(id: string) {
+    setHistoryId(id);
+    const res = await fetch(`/api/devices/${id}/checks?limit=30`);
+    if (!res.ok) {
+      toast.error("Unable to load history");
+      return;
+    }
+    setHistory(await res.json());
   }
 
   async function bulk(action: "delete" | "set_unknown") {
@@ -240,6 +263,7 @@ export default function DevicesPage() {
                 <th className="p-3">IP</th>
                 <th className="p-3">Type</th>
                 <th className="p-3">Checks</th>
+                <th className="p-3">Latency</th>
                 <th className="p-3">Location</th>
                 <th className="p-3">City</th>
                 <th className="p-3">Status</th>
@@ -254,10 +278,22 @@ export default function DevicesPage() {
                     <td className="p-3">
                       <input type="checkbox" checked={selected.includes(device.id)} onChange={() => toggle(device.id)} />
                     </td>
-                    <td className="p-3 font-medium">{device.hostname}</td>
+                    <td className="p-3 font-medium">
+                      {device.display_name ? (
+                        <>
+                          <span>{device.display_name}</span>
+                          <span className="mt-0.5 block font-mono text-[11px] text-muted-foreground">{device.hostname}</span>
+                        </>
+                      ) : (
+                        device.hostname
+                      )}
+                    </td>
                     <td className="p-3 font-mono">{device.ip}</td>
                     <td className="p-3 capitalize">{device.type}</td>
                     <td className="p-3 font-mono text-xs text-muted-foreground">{formatChecksSummary(checks)}</td>
+                    <td className="p-3 font-mono text-xs">
+                      {device.last_check_latency_ms != null ? `${device.last_check_latency_ms} ms` : "—"}
+                    </td>
                     <td className="p-3 text-muted-foreground">{device.location ?? "—"}</td>
                     <td className="p-3">
                       <CitySelect
@@ -270,9 +306,14 @@ export default function DevicesPage() {
                       <StatusBadge status={device.status} />
                     </td>
                     <td className="p-3">
-                      <Button type="button" size="sm" variant="ghost" onClick={() => startEditChecks(device)}>
-                        Checks
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button type="button" size="sm" variant="ghost" onClick={() => startEditChecks(device)}>
+                          Checks
+                        </Button>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => void openHistory(device.id)}>
+                          Hist
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -300,12 +341,36 @@ export default function DevicesPage() {
               <input type="checkbox" checked={editIcmp} onChange={(e) => setEditIcmp(e.target.checked)} />
               ICMP
             </label>
+            <label className="flex items-center gap-2 pb-2 text-sm text-muted-foreground">
+              <input type="checkbox" checked={editSkipAgent} onChange={(e) => setEditSkipAgent(e.target.checked)} />
+              Skip poller when agent fresh
+            </label>
             <Button type="button" size="sm" onClick={() => void saveChecks()}>
               Save
             </Button>
             <Button type="button" size="sm" variant="outline" onClick={() => setEditId(null)}>
               Cancel
             </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {historyId && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Check history</CardTitle>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setHistoryId(null)}>
+              Close
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-2 font-mono text-xs text-muted-foreground">
+            {history.map((row) => (
+              <p key={row.id}>
+                {new Date(row.ts).toISOString().slice(0, 19).replace("T", " ")} · {row.status} ·{" "}
+                {row.latency_ms != null ? `${row.latency_ms}ms` : "—"}
+              </p>
+            ))}
+            {history.length === 0 && <p>No samples yet — wait for the next poller tick.</p>}
           </CardContent>
         </Card>
       )}

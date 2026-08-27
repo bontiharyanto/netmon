@@ -17,14 +17,15 @@ Sign in as admin or operator.
 | Tickets | `/dashboard/tickets` | Inbox for local helpdesk and remote ITSM |
 | Topology | `/dashboard/topology` | Live links; upload CSV / Excel / JSON. Download filled CSV, Excel, or PDF. |
 | Map | `/dashboard/map` | Indonesia cities where devices are installed. Set City on Inventory. |
+| Services | `/dashboard/services` | Application / service inventory with HTTP/TCP checks, latency, skip-when-agent |
 | SLA | `/dashboard/sla` | 30-day uptime |
 
 ### Assets
 
 | Page | Path | What to do |
 | --- | --- | --- |
-| Inventory | `/dashboard/devices` | Hostname + IP. Type catalog. **Checks**: TCP ports / HTTP URL / ICMP. City for map. Bulk mark / delete |
-| Floor plans | `/dashboard/floors` | Upload JPG/PNG denah gedung/lantai; pin devices (x%, y%). Portal read-only. |
+| Inventory | `/dashboard/devices` | Hostname + IP. Type catalog. **Checks**: TCP ports / HTTP URL / ICMP. Latency history. Skip poller when agent fresh. City for map. Bulk mark / delete |
+| Floor plans | `/dashboard/floors` | Upload JPG/PNG denah; pin devices (x%, y%); optional **zone** / **rack**. Portal read-only. |
 | CMDB | `/dashboard/cmdb` | CIs + **relations** (App runs_on Server, App backed_by Database). Optional NovaCRM sync. |
 | Import | `/dashboard/import` | CSV / Excel inventory |
 | Agents | `/dashboard/agents` | Issue a token for an existing Inventory device, then install the host script. Up/down is mainly the 60s TCP poller; the agent is an optional push of CPU/RAM/disk. |
@@ -69,7 +70,7 @@ Viewers on `/portal` can see tickets but cannot reply. Full connector notes: [TI
 
 ## Customer portal (`/portal`)
 
-Login as `viewer`. Read-only: Overview, Assets, CMDB, Topology, Map, Tickets, Knowledge, AI. The same mass-incident ticker appears here. Password rotation still applies.
+Login as `viewer`. Read-only: Overview, Assets (checks + latency), CMDB (relations), Topology, Map, Floors, Services, Tickets, Knowledge, AI. The same mass-incident ticker appears here. Password rotation still applies.
 
 Public status (no login): `/status/{tenant-slug}`.
 

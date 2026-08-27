@@ -25,6 +25,8 @@ const schema = z.object({
   type: z.string().min(1),
   location: z.string().optional(),
   city: z.string().max(80).optional(),
+  display_name: z.string().max(160).optional(),
+  skip_poller_when_agent: z.boolean().optional(),
   checks: checksSchema,
 });
 
@@ -69,6 +71,8 @@ export async function POST(req: Request) {
       location: parsed.data.location || null,
       city,
       checks,
+      display_name: parsed.data.display_name?.trim() || null,
+      skip_poller_when_agent: parsed.data.skip_poller_when_agent ?? false,
       tenant_id: gate.session.user.tenantId,
     },
   });

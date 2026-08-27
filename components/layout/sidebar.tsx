@@ -14,6 +14,7 @@ import {
   FileText,
   Gauge,
   GitFork,
+  Globe2,
   KeyRound,
   LayoutDashboard,
   MapPin,
@@ -52,6 +53,7 @@ const PRIMARY: { key: GroupKey; items: NavItem[] }[] = [
       { href: "/dashboard/sla", labelKey: "sla", icon: Gauge, permission: "sla.read" },
       { href: "/dashboard/topology", labelKey: "topology", icon: GitFork, permission: "topology.read" },
       { href: "/dashboard/map", labelKey: "map", icon: MapPin, permission: "assets.read" },
+      { href: "/dashboard/services", labelKey: "services", icon: Globe2, permission: "assets.read" },
     ],
   },
   {

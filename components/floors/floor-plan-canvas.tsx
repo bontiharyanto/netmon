@@ -7,6 +7,8 @@ export type FloorPin = {
   id: string;
   x: number;
   y: number;
+  rack?: string | null;
+  zone?: string | null;
   device: {
     id: string;
     hostname: string;
@@ -167,6 +169,7 @@ export function PlacementList({
             <p className="truncate font-medium">{pin.device.hostname}</p>
             <p className="font-mono text-[11px] text-muted-foreground">
               {pin.device.ip} · {pin.x.toFixed(1)}%, {pin.y.toFixed(1)}%
+              {pin.rack || pin.zone ? ` · ${[pin.zone, pin.rack].filter(Boolean).join(" / ")}` : ""}
             </p>
           </button>
           <StatusBadge status={pin.device.status} />

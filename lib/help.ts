@@ -188,8 +188,22 @@ export const HELP_ARTICLES: HelpArticle[] = [
       id: "Denah lantai",
     },
     body: {
-      en: "Create a building and floor, upload a JPG/PNG/WebP plan (max 8 MB), select a device, then click the plan to pin it. Drag pins to move. Positions are stored as percentages. Portal users see the same floors read-only.",
-      id: "Buat gedung dan lantai, unggah denah JPG/PNG/WebP (maks 8 MB), pilih perangkat, lalu klik denah untuk pin. Geser pin untuk memindah. Posisi disimpan sebagai persen. Portal melihat denah yang sama secara baca saja.",
+      en: "Create a building and floor, upload a JPG/PNG/WebP plan (max 8 MB), select a device (optional zone/rack), then click the plan to pin it. Select a pin to edit zone/rack. Drag pins to move. Positions are stored as percentages. Portal users see the same floors read-only.",
+      id: "Buat gedung dan lantai, unggah denah JPG/PNG/WebP (maks 8 MB), pilih perangkat (opsional zone/rack), lalu klik denah untuk pin. Pilih pin untuk mengubah zone/rack. Geser pin untuk memindah. Posisi disimpan sebagai persen. Portal melihat denah yang sama secara baca saja.",
+    },
+  },
+  {
+    id: "services",
+    tags: ["service", "application", "http", "latency", "synthetic", "probe"],
+    nocHref: "/dashboard/services",
+    portalHref: "/portal/services",
+    title: {
+      en: "Services",
+      id: "Services",
+    },
+    body: {
+      en: "Monitor → Services lists application/service inventory with HTTP/TCP checks and latency. Inventory can set skip poller when agent is fresh. Portal shows the same list read-only. Details: docs/CHECKS.md.",
+      id: "Monitor → Services menampilkan inventaris application/service dengan cek HTTP/TCP dan latensi. Inventory bisa menonaktifkan poller saat agent masih fresh. Portal menampilkan daftar yang sama secara baca saja. Detail: docs/CHECKS.md.",
     },
   },
   {

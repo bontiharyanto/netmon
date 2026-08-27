@@ -9,6 +9,8 @@ const schema = z.object({
   device_id: z.string().min(1),
   x: z.number(),
   y: z.number(),
+  rack: z.string().max(80).optional(),
+  zone: z.string().max(80).optional(),
 });
 
 type Params = { params: { id: string } };
@@ -41,8 +43,15 @@ export async function POST(req: Request, { params }: Params) {
       device_id: device.id,
       x,
       y,
+      rack: parsed.data.rack?.trim() || null,
+      zone: parsed.data.zone?.trim() || null,
     },
-    update: { x, y },
+    update: {
+      x,
+      y,
+      ...(parsed.data.rack !== undefined ? { rack: parsed.data.rack.trim() || null } : {}),
+      ...(parsed.data.zone !== undefined ? { zone: parsed.data.zone.trim() || null } : {}),
+    },
     include: {
       device: { select: { id: true, hostname: true, ip: true, type: true, status: true } },
     },

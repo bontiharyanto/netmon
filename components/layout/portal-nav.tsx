@@ -13,6 +13,7 @@ const LINKS = [
   { href: "/portal/topology", key: "topology" as const },
   { href: "/portal/map", key: "map" as const },
   { href: "/portal/floors", key: "floors" as const },
+  { href: "/portal/services", key: "services" as const },
   { href: "/portal/tickets", key: "tickets" as const },
   { href: "/portal/knowledge", key: "knowledge" as const },
   { href: "/portal/ai", key: "ai" as const },

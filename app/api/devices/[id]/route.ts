@@ -15,6 +15,8 @@ const schema = z.object({
   city: z.string().max(80).nullable().optional(),
   location: z.string().max(120).nullable().optional(),
   type: z.string().min(1).max(40).optional(),
+  display_name: z.string().max(160).nullable().optional(),
+  skip_poller_when_agent: z.boolean().optional(),
   checks: z
     .object({
       tcp: z.array(z.number().int().min(1).max(65535)).max(16).optional(),
@@ -40,11 +42,17 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     city?: string | null;
     location?: string | null;
     type?: string;
+    display_name?: string | null;
+    skip_poller_when_agent?: boolean;
     checks?: ReturnType<typeof parseDeviceChecks>;
   } = {};
   if (parsed.data.city !== undefined) data.city = normalizeCityInput(parsed.data.city);
   if (parsed.data.location !== undefined) data.location = parsed.data.location?.trim() || null;
   if (parsed.data.type !== undefined) data.type = parsed.data.type.trim();
+  if (parsed.data.display_name !== undefined) data.display_name = parsed.data.display_name?.trim() || null;
+  if (parsed.data.skip_poller_when_agent !== undefined) {
+    data.skip_poller_when_agent = parsed.data.skip_poller_when_agent;
+  }
   if (parsed.data.checks !== undefined) {
     data.checks = parseDeviceChecks(parsed.data.checks, data.type ?? existing.type);
   }

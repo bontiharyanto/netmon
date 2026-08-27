@@ -7,6 +7,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { FloorPlanCanvas, PlacementList, type FloorPin } from "@/components/floors/floor-plan-canvas";
 
+function SelectedPinMeta({
+  pin,
+  onSave,
+}: {
+  pin: FloorPin;
+  onSave: (rack: string, zone: string) => void;
+}) {
+  const [rack, setRack] = useState(pin.rack ?? "");
+  const [zone, setZone] = useState(pin.zone ?? "");
+
+  return (
+    <div className="space-y-2 rounded-lg border border-border p-3">
+      <p className="text-xs text-muted-foreground">
+        Edit <span className="font-medium text-foreground">{pin.device.hostname}</span>
+      </p>
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="space-y-1 text-xs text-muted-foreground">
+          Zone
+          <Input className="w-[120px]" value={zone} onChange={(e) => setZone(e.target.value)} placeholder="A / Wing" />
+        </label>
+        <label className="space-y-1 text-xs text-muted-foreground">
+          Rack
+          <Input className="w-[120px]" value={rack} onChange={(e) => setRack(e.target.value)} placeholder="R12" />
+        </label>
+        <Button type="button" size="sm" onClick={() => onSave(rack, zone)}>
+          Save
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 type FloorSummary = {
   id: string;
   name: string;
@@ -52,6 +84,8 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
   const [placements, setPlacements] = useState<FloorPin[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placingDeviceId, setPlacingDeviceId] = useState<string | null>(null);
+  const [placeRack, setPlaceRack] = useState("");
+  const [placeZone, setPlaceZone] = useState("");
   const [loading, setLoading] = useState(true);
   const [buildingName, setBuildingName] = useState("");
   const [buildingAddress, setBuildingAddress] = useState("");
@@ -275,7 +309,13 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
     const res = await fetch(`/api/floors/${floorId}/placements`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ device_id: placingDeviceId, x, y }),
+      body: JSON.stringify({
+        device_id: placingDeviceId,
+        x,
+        y,
+        rack: placeRack || undefined,
+        zone: placeZone || undefined,
+      }),
     });
     if (!res.ok) {
       toast.error("Could not place device");
@@ -287,6 +327,8 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
       return [...without, pin];
     });
     setPlacingDeviceId(null);
+    setPlaceRack("");
+    setPlaceZone("");
     setSelectedId(pin.id);
     toast.success(`Placed ${pin.device.hostname}`);
     await loadBuildings();
@@ -315,6 +357,23 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
     await loadBuildings();
   }
 
+  async function saveSelectedMeta(rack: string, zone: string) {
+    if (!selectedId) return;
+    const res = await fetch(`/api/floors/placements/${selectedId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rack: rack || null, zone: zone || null }),
+    });
+    if (!res.ok) {
+      toast.error("Could not update rack/zone");
+      return;
+    }
+    const pin = (await res.json()) as FloorPin;
+    setPlacements((prev) => prev.map((p) => (p.id === pin.id ? pin : p)));
+    toast.success("Rack / zone saved");
+  }
+
+  const selectedPin = placements.find((p) => p.id === selectedId) ?? null;
   const imageUrl = floor?.has_image && floorId ? `/api/floors/${floorId}/image?t=${Date.now()}` : null;
 
   return (
@@ -503,21 +562,31 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
             </CardHeader>
             <CardContent className="space-y-4">
               {canWrite && floor && (
-                <label className="block max-w-md space-y-1 text-xs text-muted-foreground">
-                  Device to place
-                  <select
-                    className={selectClass}
-                    value={placingDeviceId ?? ""}
-                    onChange={(event) => setPlacingDeviceId(event.target.value || null)}
-                  >
-                    <option value="">Select device, then click the plan…</option>
-                    {availableDevices.map((device) => (
-                      <option key={device.id} value={device.id}>
-                        {device.hostname} · {device.ip}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className="flex flex-wrap items-end gap-3">
+                  <label className="block max-w-md space-y-1 text-xs text-muted-foreground">
+                    Device to place
+                    <select
+                      className={selectClass}
+                      value={placingDeviceId ?? ""}
+                      onChange={(event) => setPlacingDeviceId(event.target.value || null)}
+                    >
+                      <option value="">Select device, then click the plan…</option>
+                      {availableDevices.map((device) => (
+                        <option key={device.id} value={device.id}>
+                          {device.hostname} · {device.ip}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1 text-xs text-muted-foreground">
+                    Zone
+                    <Input className="w-[120px]" value={placeZone} onChange={(e) => setPlaceZone(e.target.value)} placeholder="A / Wing" />
+                  </label>
+                  <label className="space-y-1 text-xs text-muted-foreground">
+                    Rack
+                    <Input className="w-[120px]" value={placeRack} onChange={(e) => setPlaceRack(e.target.value)} placeholder="R12" />
+                  </label>
+                </div>
               )}
 
               <FloorPlanCanvas
@@ -538,7 +607,7 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
               <CardTitle className="text-base">Placed devices</CardTitle>
               <CardDescription>{placements.length} on this floor</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <PlacementList
                 placements={placements}
                 selectedId={selectedId}
@@ -546,6 +615,13 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
                 onSelect={setSelectedId}
                 onRemove={(id) => void removePin(id)}
               />
+              {canWrite && selectedPin && (
+                <SelectedPinMeta
+                  key={selectedPin.id}
+                  pin={selectedPin}
+                  onSave={(rack, zone) => void saveSelectedMeta(rack, zone)}
+                />
+              )}
             </CardContent>
           </Card>
         </div>

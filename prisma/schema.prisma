@@ -42,6 +42,7 @@ model tenant {
   floors             floor[]
   floor_placements   floor_placement[]
   cmdb_relations     cmdb_relation[]
+  check_results      device_check_result[]
 }
 
 model user {
@@ -75,12 +76,20 @@ model device {
   city          String?
   /// Probe config: { tcp: number[], http: [{ url, expectStatus? }], icmp?: boolean }
   checks        Json          @default("{\"tcp\":[80]}")
+  display_name  String?
+  /// When true and agent heartbeat is fresh, skip remote poller probes.
+  skip_poller_when_agent Boolean @default(false)
+  last_check_at DateTime?
+  last_check_status String?
+  last_check_latency_ms Int?
+  last_check_detail Json?
   last_seen     DateTime?
   created_at    DateTime      @default(now())
   tenant        tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   alerts        alert[]
   sla           sla?
   metrics       metric[]
+  check_results device_check_result[]
   links_from    device_link[] @relation("from_device")
   links_to      device_link[] @relation("to_device")
   agent         agent?
@@ -91,6 +100,22 @@ model device {
   @@unique([ip])
   @@index([tenant_id])
   @@index([tenant_id, status])
+  @@index([tenant_id, type])
+}
+
+model device_check_result {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  device_id   String
+  ts          DateTime @default(now())
+  status      String
+  latency_ms  Int?
+  detail      Json
+  device      device   @relation(fields: [device_id], references: [id], onDelete: Cascade)
+  tenant      tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([device_id, ts])
+  @@index([tenant_id, ts])
 }
 
 model device_link {
@@ -406,6 +431,8 @@ model floor_placement {
   device_id  String
   x          Float
   y          Float
+  rack       String?
+  zone       String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   tenant     tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)

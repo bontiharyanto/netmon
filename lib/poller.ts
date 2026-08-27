@@ -4,12 +4,16 @@ import { maybeCommentResolvedAlert, maybeOpenTicketsForAlert } from "@/lib/ticke
 import { notifyAlert } from "@/lib/notify";
 import { parseDeviceChecks, type DeviceChecks } from "@/lib/device-checks";
 
+const CHECK_HISTORY_KEEP = 50;
+const AGENT_FRESH_MS = 3 * 60 * 1000;
+
 function tcpCheck(ip: string, port: number, timeoutMs = 2500) {
-  return new Promise<boolean>((resolve) => {
+  return new Promise<{ ok: boolean; ms: number }>((resolve) => {
+    const started = Date.now();
     const socket = new net.Socket();
     const done = (ok: boolean) => {
       socket.destroy();
-      resolve(ok);
+      resolve({ ok, ms: Date.now() - started });
     };
     socket.setTimeout(timeoutMs);
     socket.once("connect", () => done(true));
@@ -20,6 +24,7 @@ function tcpCheck(ip: string, port: number, timeoutMs = 2500) {
 }
 
 async function httpCheck(url: string, expectStatus = 200, timeoutMs = 5000) {
+  const started = Date.now();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -29,16 +34,16 @@ async function httpCheck(url: string, expectStatus = 200, timeoutMs = 5000) {
       signal: controller.signal,
       headers: { "User-Agent": "NETMON-Poller/1.0" },
     });
-    return res.status === expectStatus;
+    return { ok: res.status === expectStatus, ms: Date.now() - started };
   } catch {
-    return false;
+    return { ok: false, ms: Date.now() - started };
   } finally {
     clearTimeout(timer);
   }
 }
 
 async function icmpCheck(ip: string, timeoutMs = 2500) {
-  // Best-effort: many containers lack CAP_NET_RAW. Fall back to TCP/7 echo if needed.
+  const started = Date.now();
   try {
     const { execFile } = await import("child_process");
     const { promisify } = await import("util");
@@ -46,31 +51,31 @@ async function icmpCheck(ip: string, timeoutMs = 2500) {
     await execFileAsync("ping", ["-c", "1", "-W", String(Math.ceil(timeoutMs / 1000)), ip], {
       timeout: timeoutMs + 500,
     });
-    return true;
+    return { ok: true, ms: Date.now() - started };
   } catch {
-    return false;
+    return { ok: false, ms: Date.now() - started };
   }
 }
 
-export type CheckResult = { kind: string; target: string; ok: boolean };
+export type CheckResult = { kind: string; target: string; ok: boolean; ms: number };
 
 export async function runDeviceChecks(ip: string, checks: DeviceChecks): Promise<CheckResult[]> {
   const results: CheckResult[] = [];
   for (const port of checks.tcp) {
-    results.push({ kind: "tcp", target: `${ip}:${port}`, ok: await tcpCheck(ip, port) });
+    const hit = await tcpCheck(ip, port);
+    results.push({ kind: "tcp", target: `${ip}:${port}`, ok: hit.ok, ms: hit.ms });
   }
   for (const http of checks.http) {
-    results.push({
-      kind: "http",
-      target: http.url,
-      ok: await httpCheck(http.url, http.expectStatus ?? 200),
-    });
+    const hit = await httpCheck(http.url, http.expectStatus ?? 200);
+    results.push({ kind: "http", target: http.url, ok: hit.ok, ms: hit.ms });
   }
   if (checks.icmp) {
-    results.push({ kind: "icmp", target: ip, ok: await icmpCheck(ip) });
+    const hit = await icmpCheck(ip);
+    results.push({ kind: "icmp", target: ip, ok: hit.ok, ms: hit.ms });
   }
   if (!results.length) {
-    results.push({ kind: "tcp", target: `${ip}:80`, ok: await tcpCheck(ip, 80) });
+    const hit = await tcpCheck(ip, 80);
+    results.push({ kind: "tcp", target: `${ip}:80`, ok: hit.ok, ms: hit.ms });
   }
   return results;
 }
@@ -87,6 +92,46 @@ function jitter(base: number, spread = 8) {
   return Math.max(1, Math.min(99, base + (Math.random() * spread * 2 - spread)));
 }
 
+async function persistCheckSample(
+  tenantId: string,
+  deviceId: string,
+  status: string,
+  results: CheckResult[],
+) {
+  const latency =
+    results.length > 0 ? Math.round(results.reduce((sum, row) => sum + row.ms, 0) / results.length) : null;
+
+  await prisma.device.update({
+    where: { id: deviceId },
+    data: {
+      last_check_at: new Date(),
+      last_check_status: status,
+      last_check_latency_ms: latency,
+      last_check_detail: results,
+    },
+  });
+
+  await prisma.device_check_result.create({
+    data: {
+      tenant_id: tenantId,
+      device_id: deviceId,
+      status,
+      latency_ms: latency,
+      detail: results,
+    },
+  });
+
+  const old = await prisma.device_check_result.findMany({
+    where: { device_id: deviceId },
+    orderBy: { ts: "desc" },
+    skip: CHECK_HISTORY_KEEP,
+    select: { id: true },
+  });
+  if (old.length) {
+    await prisma.device_check_result.deleteMany({ where: { id: { in: old.map((row) => row.id) } } });
+  }
+}
+
 export async function pollDevice(deviceId: string) {
   const device = await prisma.device.findUnique({
     where: { id: deviceId },
@@ -94,12 +139,26 @@ export async function pollDevice(deviceId: string) {
   });
   if (!device) return null;
 
-  const checks = parseDeviceChecks(device.checks, device.type);
-  const results = await runDeviceChecks(device.ip, checks);
   const agentFresh =
     Boolean(device.agent?.last_seen) &&
-    Date.now() - new Date(device.agent!.last_seen!).getTime() < 3 * 60 * 1000;
+    Date.now() - new Date(device.agent!.last_seen!).getTime() < AGENT_FRESH_MS;
 
+  if (device.skip_poller_when_agent && agentFresh) {
+    await prisma.device.update({
+      where: { id: device.id },
+      data: {
+        status: "up",
+        last_seen: new Date(),
+        last_check_at: new Date(),
+        last_check_status: "up",
+        last_check_detail: [{ kind: "agent", target: "heartbeat", ok: true, ms: 0 }],
+      },
+    });
+    return { id: device.id, status: "up", skipped: true, results: [] as CheckResult[] };
+  }
+
+  const checks = parseDeviceChecks(device.checks, device.type);
+  const results = await runDeviceChecks(device.ip, checks);
   const status = statusFromResults(results, agentFresh);
   const up = status === "up" || status === "degraded";
 
@@ -107,6 +166,7 @@ export async function pollDevice(deviceId: string) {
     where: { id: device.id },
     data: { status, last_seen: up ? new Date() : device.last_seen },
   });
+  await persistCheckSample(device.tenant_id, device.id, status, results);
 
   const recentAgentMetric =
     agentFresh &&
@@ -145,7 +205,7 @@ export async function pollDevice(deviceId: string) {
       where: { device_id: device.id, event: "device_down", status: "firing" },
     });
     if (!open) {
-      const detail = results.map((r) => `${r.kind} ${r.target}=${r.ok ? "ok" : "fail"}`).join("; ");
+      const detail = results.map((r) => `${r.kind} ${r.target}=${r.ok ? "ok" : "fail"}(${r.ms}ms)`).join("; ");
       const alert = await prisma.alert.create({
         data: {
           tenant_id: device.tenant_id,

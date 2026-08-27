@@ -8,6 +8,8 @@ import { clampPercent } from "@/lib/floors";
 const schema = z.object({
   x: z.number().optional(),
   y: z.number().optional(),
+  rack: z.string().max(80).nullable().optional(),
+  zone: z.string().max(80).nullable().optional(),
 });
 
 type Params = { params: { id: string } };
@@ -30,6 +32,8 @@ export async function PATCH(req: Request, { params }: Params) {
     data: {
       x: parsed.data.x === undefined ? undefined : clampPercent(parsed.data.x),
       y: parsed.data.y === undefined ? undefined : clampPercent(parsed.data.y),
+      rack: parsed.data.rack === undefined ? undefined : parsed.data.rack?.trim() || null,
+      zone: parsed.data.zone === undefined ? undefined : parsed.data.zone?.trim() || null,
     },
     include: {
       device: { select: { id: true, hostname: true, ip: true, type: true, status: true } },

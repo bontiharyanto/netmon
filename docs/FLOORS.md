@@ -8,7 +8,7 @@ Building / office floor plans with device pins (Plan A). Heat maps are out of sc
 | --- | --- |
 | Building | Site or campus building |
 | Floor | One level with an optional plan image (JPG / PNG / WebP, max 8 MB) |
-| Placement | Device pin at **x% / y%** on that image |
+| Placement | Device pin at **x% / y%** on that image; optional **zone** and **rack** labels |
 
 Coordinates are percentages of the image box so pins stay aligned when the UI scales.
 
@@ -29,8 +29,8 @@ PATCH/DELETE /api/floors/buildings/{id}
 POST       /api/floors
 GET/PATCH/DELETE /api/floors/{id}
 GET/POST/DELETE /api/floors/{id}/image
-POST       /api/floors/{id}/placements
-PATCH/DELETE /api/floors/placements/{id}
+POST       /api/floors/{id}/placements   # optional rack, zone
+PATCH/DELETE /api/floors/placements/{id} # move and/or rack, zone
 ```
 
 Images are stored in Postgres (`floor.image_data`) and served only to authenticated tenant sessions.
@@ -41,4 +41,4 @@ Images are stored in Postgres (`floor.image_data`) and served only to authentica
 docker compose -f docker-compose.cloud.yml exec worker npx prisma migrate deploy
 ```
 
-Requires migration `0014_floor_plans`.
+Requires migrations `0014_floor_plans` and `0016_p2_services_checks_rack` (rack/zone columns).

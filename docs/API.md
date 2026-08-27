@@ -17,8 +17,9 @@ Login errors: wrong password vs `OTP_REQUIRED` vs `DATABASE_UNAVAILABLE` (Postgr
 
 | Method | Path | Permission |
 | --- | --- | --- |
-| GET/POST | `/api/devices` | assets |
-| PATCH | `/api/devices/{id}` | assets.write · city / location |
+| GET/POST | `/api/devices` | assets · create may set `display_name`, `checks`, `skip_poller_when_agent` |
+| PATCH | `/api/devices/{id}` | assets.write · city / location / checks / display_name / skip_poller_when_agent |
+| GET | `/api/devices/{id}/checks` | assets.read · recent check samples (latency history) |
 | POST | `/api/devices/bulk` | bulk.actions |
 | GET | `/api/alerts` | alert.read |
 | POST | `/api/alerts` | alert.write |
@@ -30,8 +31,8 @@ Login errors: wrong password vs `OTP_REQUIRED` vs `DATABASE_UNAVAILABLE` (Postgr
 | POST | `/api/floors` | assets.write · create floor |
 | GET/PATCH/DELETE | `/api/floors/{id}` | assets · floor + placements |
 | GET/POST/DELETE | `/api/floors/{id}/image` | assets · JPG/PNG/WebP ≤8MB |
-| POST | `/api/floors/{id}/placements` | assets.write · pin device (x%, y%) |
-| PATCH/DELETE | `/api/floors/placements/{id}` | assets.write |
+| POST | `/api/floors/{id}/placements` | assets.write · pin device (x%, y%, optional rack/zone) |
+| PATCH/DELETE | `/api/floors/placements/{id}` | assets.write · move and/or rack/zone |
 | PATCH/DELETE | `/api/cmdb/{id}` | cmdb.write |
 | POST | `/api/import` | import.inventory |
 | POST | `/api/topology/import` | topology.write |
