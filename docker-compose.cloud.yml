@@ -42,9 +42,12 @@ services:
       HOSTNAME: "0.0.0.0"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=Host(`netmon.click`) || HostRegexp(`{subdomain:[a-z0-9-]+}.netmon.click`)"
+      # Host() names are required for Let's Encrypt (HostRegexp alone does not request certs).
+      - "traefik.http.routers.web.rule=Host(`netmon.click`) || Host(`www.netmon.click`) || Host(`demo.netmon.click`) || Host(`acme.netmon.click`) || Host(`jakarta.netmon.click`) || HostRegexp(`{subdomain:[a-z0-9-]+}.netmon.click`)"
       - "traefik.http.routers.web.entrypoints=websecure"
       - "traefik.http.routers.web.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web.tls.domains.0.main=netmon.click"
+      - "traefik.http.routers.web.tls.domains.0.sans=www.netmon.click,demo.netmon.click,acme.netmon.click,jakarta.netmon.click"
       - "traefik.http.services.web.loadbalancer.server.port=3000"
     depends_on:
       postgres:
