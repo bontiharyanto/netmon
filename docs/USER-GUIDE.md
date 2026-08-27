@@ -24,6 +24,7 @@ Sign in as admin or operator.
 | Page | Path | What to do |
 | --- | --- | --- |
 | Inventory | `/dashboard/devices` | Hostname + IP (mono). Set **City** for the Indonesia map. Bulk mark / delete |
+| Floor plans | `/dashboard/floors` | Upload JPG/PNG denah gedung/lantai; pin devices (x%, y%). Portal read-only. |
 | CMDB | `/dashboard/cmdb` | Add / edit / delete CIs. Optional **Sync CMDB** to NovaCRM ([CMDB.md](CMDB.md)). Portal is read-only. |
 | Import | `/dashboard/import` | CSV / Excel inventory |
 | Agents | `/dashboard/agents` | Issue a token for an existing Inventory device, then install the host script. Up/down is mainly the 60s TCP poller; the agent is an optional push of CPU/RAM/disk. |

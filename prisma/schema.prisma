@@ -38,6 +38,9 @@ model tenant {
   ticket_connectors  ticket_connector[]
   tickets            ticket[]
   notifications      notification[]
+  buildings          building[]
+  floors             floor[]
+  floor_placements   floor_placement[]
 }
 
 model user {
@@ -79,6 +82,7 @@ model device {
   links_to      device_link[] @relation("to_device")
   agent         agent?
   cmdb_cis      cmdb_ci[]
+  floor_placements floor_placement[]
 
   @@unique([tenant_id, hostname])
   @@unique([ip])
@@ -341,4 +345,52 @@ model role_capability {
 
   @@id([role, permission])
   @@index([role])
+}
+
+model building {
+  id         String   @id @default(cuid())
+  tenant_id  String
+  name       String
+  address    String?
+  created_at DateTime @default(now())
+  tenant     tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  floors     floor[]
+
+  @@index([tenant_id])
+}
+
+model floor {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  building_id String
+  name        String
+  level       Int      @default(0)
+  image_mime  String?
+  image_data  Bytes?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  tenant      tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  building    building @relation(fields: [building_id], references: [id], onDelete: Cascade)
+  placements  floor_placement[]
+
+  @@index([tenant_id])
+  @@index([building_id])
+}
+
+model floor_placement {
+  id         String   @id @default(cuid())
+  tenant_id  String
+  floor_id   String
+  device_id  String
+  x          Float
+  y          Float
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  tenant     tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  floor      floor    @relation(fields: [floor_id], references: [id], onDelete: Cascade)
+  device     device   @relation(fields: [device_id], references: [id], onDelete: Cascade)
+
+  @@unique([floor_id, device_id])
+  @@index([tenant_id])
+  @@index([device_id])
 }

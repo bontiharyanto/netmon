@@ -179,6 +179,20 @@ export const HELP_ARTICLES: HelpArticle[] = [
     },
   },
   {
+    id: "floors",
+    tags: ["floor", "denah", "lantai", "gedung", "building", "plan", "pin", "jpg", "jpeg"],
+    nocHref: "/dashboard/floors",
+    portalHref: "/portal/floors",
+    title: {
+      en: "Floor plans",
+      id: "Denah lantai",
+    },
+    body: {
+      en: "Create a building and floor, upload a JPG/PNG/WebP plan (max 8 MB), select a device, then click the plan to pin it. Drag pins to move. Positions are stored as percentages. Portal users see the same floors read-only.",
+      id: "Buat gedung dan lantai, unggah denah JPG/PNG/WebP (maks 8 MB), pilih perangkat, lalu klik denah untuk pin. Geser pin untuk memindah. Posisi disimpan sebagai persen. Portal melihat denah yang sama secara baca saja.",
+    },
+  },
+  {
     id: "password",
     tags: ["password", "30", "security", "account"],
     nocHref: "/dashboard/account",

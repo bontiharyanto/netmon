@@ -9,6 +9,7 @@ import {
   Bot,
   BookOpen,
   Building2,
+  Layers,
   Database,
   FileText,
   Gauge,
@@ -57,6 +58,7 @@ const PRIMARY: { key: GroupKey; items: NavItem[] }[] = [
     key: "assets",
     items: [
       { href: "/dashboard/devices", labelKey: "inventory", icon: Activity, permission: "assets.read" },
+      { href: "/dashboard/floors", labelKey: "floors", icon: Layers, permission: "assets.read" },
       { href: "/dashboard/cmdb", labelKey: "cmdb", icon: Database, permission: "cmdb.read" },
       { href: "/dashboard/agents", labelKey: "agents", icon: Bot, permission: "agent.enroll" },
       { href: "/dashboard/import", labelKey: "import", icon: Upload, permission: "import.inventory" },

@@ -17,6 +17,7 @@ const MODULES = [
   { q: "ticket novacrm", href: "/dashboard/tickets", portal: "/portal/tickets", label: { en: "Tickets", id: "Tiket" } },
   { q: "topology map", href: "/dashboard/topology", portal: "/portal/topology", label: { en: "Topology", id: "Topologi" } },
   { q: "map indonesia kota city peta", href: "/dashboard/map", portal: "/portal/map", label: { en: "Site map", id: "Peta situs" } },
+  { q: "floor plan denah lantai gedung building pin", href: "/dashboard/floors", portal: "/portal/floors", label: { en: "Floor plans", id: "Denah lantai" } },
   { q: "report pdf excel csv tanggal period analytics export", href: "/dashboard/reports", portal: "/portal/help", label: { en: "Reporting Center", id: "Pusat laporan" } },
   { q: "capability matrix permissions rbac role access", href: "/dashboard/admin/permissions", portal: "/portal/help", label: { en: "Capability Matrix", id: "Capability Matrix" } },
   { q: "import", href: "/dashboard/import", portal: "/portal/help", label: { en: "Import", id: "Impor" } },
