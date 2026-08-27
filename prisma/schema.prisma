@@ -43,6 +43,8 @@ model tenant {
   floor_placements   floor_placement[]
   cmdb_relations     cmdb_relation[]
   check_results      device_check_result[]
+  alert_rules        alert_rule[]
+  maintenance_windows maintenance_window[]
 }
 
 model user {
@@ -90,6 +92,7 @@ model device {
   sla           sla?
   metrics       metric[]
   check_results device_check_result[]
+  alert_rules   alert_rule[]
   links_from    device_link[] @relation("from_device")
   links_to      device_link[] @relation("to_device")
   agent         agent?
@@ -138,16 +141,75 @@ model alert {
   event      String
   status     String   @default("firing")
   severity   String   @default("critical")
+  message    String?
+  rule_id    String?
   created_at DateTime @default(now())
   resolved_at DateTime?
   tenant     tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   device     device   @relation(fields: [device_id], references: [id], onDelete: Cascade)
+  rule       alert_rule? @relation(fields: [rule_id], references: [id], onDelete: SetNull)
   tickets    ticket[]
 
   @@index([tenant_id])
   @@index([device_id])
   @@index([tenant_id, status])
   @@index([device_id, event, status])
+  @@index([rule_id])
+}
+
+model alert_rule {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  name        String
+  enabled     Boolean  @default(true)
+  /// device_down | check_degraded | high_latency | metric_cpu | metric_ram | metric_disk
+  event       String
+  severity    String   @default("warning")
+  device_id   String?
+  device_type String?
+  config      Json     @default("{}")
+  for_seconds Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  tenant      tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  device      device?  @relation(fields: [device_id], references: [id], onDelete: SetNull)
+  alerts      alert[]
+  states      alert_rule_state[]
+
+  @@index([tenant_id, enabled])
+  @@index([tenant_id, event])
+}
+
+model alert_rule_state {
+  id        String   @id @default(cuid())
+  tenant_id String
+  rule_id   String
+  device_id String
+  since     DateTime @default(now())
+  rule      alert_rule @relation(fields: [rule_id], references: [id], onDelete: Cascade)
+
+  @@unique([rule_id, device_id])
+  @@index([tenant_id])
+}
+
+model maintenance_window {
+  id              String   @id @default(cuid())
+  tenant_id       String
+  name            String
+  /// all | devices | types
+  scope           String   @default("all")
+  scope_config    Json     @default("{}")
+  starts_at       DateTime
+  ends_at         DateTime
+  suppress_alert  Boolean  @default(true)
+  suppress_notify Boolean  @default(true)
+  suppress_ticket Boolean  @default(true)
+  note            String?
+  created_by      String?
+  created_at      DateTime @default(now())
+  tenant          tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id, starts_at, ends_at])
 }
 
 model sla {

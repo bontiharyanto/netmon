@@ -61,6 +61,9 @@ export default async function AlertsPage() {
               <div key={alert.id} className="flex items-center justify-between gap-3 rounded-md bg-muted/40 px-3 py-3">
                 <div>
                   <p className="font-medium">{alert.event}</p>
+                  {alert.message ? (
+                    <p className="text-xs text-muted-foreground">{alert.message}</p>
+                  ) : null}
                   <p className="font-mono text-xs text-muted-foreground">
                     {alert.device.hostname} · {alert.created_at.toISOString()}
                     {ticket ? ` · ticket ${ticket.external_id || ticket.id}` : ""}

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
+import { ensureDefaultDeviceDownRule } from "@/lib/alert-eval";
 
 const schema = z.object({
   company: z.string().min(2),
@@ -49,6 +50,8 @@ export async function POST(req: Request) {
       },
     },
   });
+
+  await ensureDefaultDeviceDownRule(tenant.id);
 
   return NextResponse.json({ id: tenant.id, slug: tenant.slug });
 }

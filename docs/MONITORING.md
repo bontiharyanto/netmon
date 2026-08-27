@@ -134,8 +134,10 @@ On each tick the worker:
 2. Sets `device.status` to `up` or `down`.
 3. Writes a `metric` sample (CPU/RAM/disk are **synthetic jitter** while up — not SNMP).
 4. Updates `sla.uptime_30d`.
-5. If newly down: critical alert `device_down`, notify channels, auto-open tickets.
-6. If back up: resolve that alert, recover comment on tickets.
+5. Evaluates **alert rules** (default: `device_down` critical). Respects **maintenance windows** (suppress alert/notify/ticket).
+6. If condition clears: resolve matching firing alerts, recover comment on tickets.
+
+Configurable rules and maintenance: [P3.md](P3.md) · UI `/dashboard/alert-rules`, `/dashboard/maintenance`.
 
 ### Make sure the worker is running
 
@@ -237,7 +239,8 @@ When the poller sees a device go down:
 
 | Step | What happens | You configure |
 | --- | --- | --- |
-| Alert | `device_down`, severity `critical`, status `firing` | automatic |
+| Alert | From enabled **alert rules** (default `device_down` critical). Optional `message` + `rule_id`. | automatic |
+| Maintenance | Active windows can suppress alert create, notify, and/or auto-ticket; device status is not faked | `/dashboard/maintenance` |
 | Bell | In-app notification | automatic |
 | Channels | Email, Slack, Teams, Telegram, WhatsApp, Discord, SMS, PagerDuty, webhook, SNMP trap | **Settings → Channels** — enable + severity |
 | Tickets | NETMON Helpdesk and/or NovaCRM / Jira | **Settings → Ticketing** — enable + auto-open |
@@ -256,6 +259,8 @@ Acknowledge / resolve from **Alerts** (`/dashboard/alerts`). Viewers cannot writ
 | --- | --- | --- |
 | Overview | `/dashboard` | KPI: up / down / firing / SLA |
 | Alerts | `/dashboard/alerts` | Firing incidents |
+| Alert rules | `/dashboard/alert-rules` | Threshold / status rules |
+| Maintenance | `/dashboard/maintenance` | Suppress windows |
 | SLA | `/dashboard/sla` | 30-day uptime (from poller ticks) |
 | CMDB | `/dashboard/cmdb` | Asset tag, serial, owner. Optional NovaCRM sync: [CMDB.md](CMDB.md) |
 | Public status | `/status/{slug}` | No login |

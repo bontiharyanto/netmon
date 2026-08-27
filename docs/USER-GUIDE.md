@@ -14,6 +14,8 @@ Sign in as admin or operator.
 | --- | --- | --- |
 | Overview | `/dashboard` | KPI cards, Indonesia site map, live estate |
 | Alerts | `/dashboard/alerts` | Firing / resolved. Open a ticket from a firing alert |
+| Alert rules | `/dashboard/alert-rules` | Threshold / status rules (`device_down`, latency, metrics). Default Device down = P2 behaviour |
+| Maintenance | `/dashboard/maintenance` | Schedule windows that suppress alert / notify / auto-ticket (status unchanged) |
 | Tickets | `/dashboard/tickets` | Inbox for local helpdesk and remote ITSM |
 | Topology | `/dashboard/topology` | Live links; upload CSV / Excel / JSON. Download filled CSV, Excel, or PDF. |
 | Map | `/dashboard/map` | Indonesia cities where devices are installed. Set City on Inventory. |

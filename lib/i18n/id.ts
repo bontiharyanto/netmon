@@ -20,6 +20,8 @@ export const id = {
     admin: "Admin",
     overview: "Ringkasan",
     alerts: "Alert",
+    alertRules: "Alert rules",
+    maintenance: "Maintenance",
     tickets: "Tiket",
     topology: "Topologi",
     map: "Peta",

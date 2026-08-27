@@ -1,8 +1,7 @@
 import net from "net";
 import { prisma } from "@/lib/prisma";
-import { maybeCommentResolvedAlert, maybeOpenTicketsForAlert } from "@/lib/tickets";
-import { notifyAlert } from "@/lib/notify";
 import { parseDeviceChecks, type DeviceChecks } from "@/lib/device-checks";
+import { evaluateDeviceAlerts } from "@/lib/alert-eval";
 
 const CHECK_HISTORY_KEEP = 50;
 const AGENT_FRESH_MS = 3 * 60 * 1000;
@@ -151,9 +150,26 @@ export async function pollDevice(deviceId: string) {
         last_seen: new Date(),
         last_check_at: new Date(),
         last_check_status: "up",
+        last_check_latency_ms: 0,
         last_check_detail: [{ kind: "agent", target: "heartbeat", ok: true, ms: 0 }],
       },
     });
+    const metric = await prisma.metric.findFirst({
+      where: { device_id: device.id },
+      orderBy: { ts: "desc" },
+    });
+    await evaluateDeviceAlerts(
+      {
+        id: device.id,
+        tenant_id: device.tenant_id,
+        hostname: device.hostname,
+        ip: device.ip,
+        type: device.type,
+        status: "up",
+        last_check_latency_ms: 0,
+      },
+      metric,
+    );
     return { id: device.id, status: "up", skipped: true, results: [] as CheckResult[] };
   }
 
@@ -161,6 +177,8 @@ export async function pollDevice(deviceId: string) {
   const results = await runDeviceChecks(device.ip, checks);
   const status = statusFromResults(results, agentFresh);
   const up = status === "up" || status === "degraded";
+  const latency =
+    results.length > 0 ? Math.round(results.reduce((sum, row) => sum + row.ms, 0) / results.length) : null;
 
   await prisma.device.update({
     where: { id: device.id },
@@ -175,8 +193,9 @@ export async function pollDevice(deviceId: string) {
       orderBy: { ts: "desc" },
     }));
 
+  let latestMetric = recentAgentMetric;
   if (!recentAgentMetric || Date.now() - recentAgentMetric.ts.getTime() > 90_000) {
-    await prisma.metric.create({
+    latestMetric = await prisma.metric.create({
       data: {
         device_id: device.id,
         cpu_percent: status === "down" ? 0 : jitter(28),
@@ -200,51 +219,24 @@ export async function pollDevice(deviceId: string) {
     create: { device_id: device.id, uptime_30d: nextUptime },
   });
 
-  if (status === "down") {
-    const open = await prisma.alert.findFirst({
-      where: { device_id: device.id, event: "device_down", status: "firing" },
-    });
-    if (!open) {
-      const detail = results.map((r) => `${r.kind} ${r.target}=${r.ok ? "ok" : "fail"}(${r.ms}ms)`).join("; ");
-      const alert = await prisma.alert.create({
-        data: {
-          tenant_id: device.tenant_id,
-          device_id: device.id,
-          event: "device_down",
-          status: "firing",
-          severity: "critical",
-        },
-      });
-      await maybeOpenTicketsForAlert(alert.id);
-      await notifyAlert({
-        tenantId: device.tenant_id,
-        alertId: alert.id,
-        title: `CRITICAL ${device.hostname} down`,
-        body: `${device.hostname} (${device.ip}) failed checks: ${detail}`,
-        severity: "critical",
-      });
-    }
-  } else {
-    const firing = await prisma.alert.findMany({
-      where: { device_id: device.id, event: "device_down", status: "firing" },
-      select: { id: true },
-    });
-    if (firing.length) {
-      await prisma.alert.updateMany({
-        where: { device_id: device.id, event: "device_down", status: "firing" },
-        data: { status: "resolved", resolved_at: new Date() },
-      });
-      await maybeCommentResolvedAlert(device.id, "device_down");
-      await notifyAlert({
-        tenantId: device.tenant_id,
-        alertId: firing[0]!.id,
-        title: `${device.hostname} recovered`,
-        body: `${device.hostname} (${device.ip}) is responding again (${status}).`,
-        severity: "info",
-        recovered: true,
-      });
-    }
-  }
+  await evaluateDeviceAlerts(
+    {
+      id: device.id,
+      tenant_id: device.tenant_id,
+      hostname: device.hostname,
+      ip: device.ip,
+      type: device.type,
+      status,
+      last_check_latency_ms: latency,
+    },
+    latestMetric
+      ? {
+          cpu_percent: latestMetric.cpu_percent,
+          ram_percent: latestMetric.ram_percent,
+          disk_percent: latestMetric.disk_percent,
+        }
+      : null,
+  );
 
   return { id: device.id, status, results };
 }

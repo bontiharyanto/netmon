@@ -37,6 +37,9 @@ async function main() {
   await prisma.notification.deleteMany();
   await prisma.metric.deleteMany();
   await prisma.alert.deleteMany();
+  await prisma.alert_rule_state.deleteMany();
+  await prisma.alert_rule.deleteMany();
+  await prisma.maintenance_window.deleteMany();
   await prisma.device_link.deleteMany();
   await prisma.agent.deleteMany();
   await prisma.cmdb_ci.deleteMany();
@@ -98,6 +101,17 @@ async function main() {
   });
 
   for (const tenant of [demo, acme, jakarta]) {
+    await prisma.alert_rule.create({
+      data: {
+        tenant_id: tenant.id,
+        name: "Device down",
+        event: "device_down",
+        severity: "critical",
+        enabled: true,
+        config: {},
+        for_seconds: 0,
+      },
+    });
     await prisma.notify_channel.createMany({
       data: CHANNEL_CATALOG.map((kind) => ({
         tenant_id: tenant.id,

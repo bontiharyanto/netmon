@@ -179,6 +179,20 @@ export const HELP_ARTICLES: HelpArticle[] = [
     },
   },
   {
+    id: "alert-rules",
+    tags: ["alert", "rule", "threshold", "latency", "maintenance", "silence", "suppress"],
+    nocHref: "/dashboard/alert-rules",
+    portalHref: "/portal/help",
+    title: {
+      en: "Alert rules & maintenance",
+      id: "Alert rules & maintenance",
+    },
+    body: {
+      en: "Monitor → Alert rules defines when alerts fire (device_down, degraded, latency, CPU/RAM/disk). Maintenance windows suppress alert create, notify, and auto-ticket without faking device status. Default “Device down” rule preserves prior behaviour. Details: docs/P3.md.",
+      id: "Monitor → Alert rules menentukan kapan alert fire (device_down, degraded, latency, CPU/RAM/disk). Maintenance menekan create alert, notify, dan auto-ticket tanpa memalsukan status device. Rule default “Device down” menjaga perilaku lama. Detail: docs/P3.md.",
+    },
+  },
+  {
     id: "floors",
     tags: ["floor", "denah", "lantai", "gedung", "building", "plan", "pin", "jpg", "jpeg"],
     nocHref: "/dashboard/floors",

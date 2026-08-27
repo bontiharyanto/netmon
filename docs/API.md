@@ -23,6 +23,11 @@ Login errors: wrong password vs `OTP_REQUIRED` vs `DATABASE_UNAVAILABLE` (Postgr
 | POST | `/api/devices/bulk` | bulk.actions |
 | GET | `/api/alerts` | alert.read |
 | POST | `/api/alerts` | alert.write |
+| GET/POST | `/api/alert-rules` | alert · CRUD rules (default `device_down` auto-seeded) |
+| PATCH/DELETE | `/api/alert-rules/{id}` | alert.write |
+| GET/POST | `/api/maintenance` | alert · maintenance windows (`?active=1`) |
+| PATCH/DELETE | `/api/maintenance/{id}` | alert.write |
+| GET | `/api/maintenance/active` | alert.read · windows active now |
 | GET | `/api/dashboard/overview` | session |
 | GET/PATCH/DELETE | `/api/cmdb/{id}` | cmdb.write |
 | GET/POST | `/api/cmdb/relations` | cmdb · App/Server/DB graph |

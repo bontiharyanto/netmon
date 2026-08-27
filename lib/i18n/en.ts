@@ -20,6 +20,8 @@ export const en = {
     admin: "Admin",
     overview: "Overview",
     alerts: "Alerts",
+    alertRules: "Alert rules",
+    maintenance: "Maintenance",
     tickets: "Tickets",
     topology: "Topology",
     map: "Map",
