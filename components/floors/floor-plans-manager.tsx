@@ -118,14 +118,28 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
   const availableDevices = devices.filter((d) => !placedIds.has(d.id));
 
   async function createBuilding() {
-    if (!buildingName.trim()) return;
+    if (!buildingName.trim()) {
+      toast.error("Building name is required (min 2 characters)");
+      return;
+    }
+    if (buildingName.trim().length < 2) {
+      toast.error("Building name must be at least 2 characters");
+      return;
+    }
     const res = await fetch("/api/floors/buildings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: buildingName, address: buildingAddress || undefined }),
     });
     if (!res.ok) {
-      toast.error("Could not create building");
+      const body = await res.json().catch(() => null);
+      const hint =
+        res.status === 403
+          ? "Forbidden — need assets.write (admin/operator)"
+          : res.status === 404
+            ? "API missing — rebuild/redeploy web image"
+            : body?.error ?? `HTTP ${res.status}`;
+      toast.error(`Could not create building: ${hint}`);
       return;
     }
     const created = (await res.json()) as Building;

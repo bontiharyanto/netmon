@@ -47,15 +47,31 @@ export async function POST(req: Request) {
   if (gate.error || !gate.session) return gate.error;
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid payload — name must be 2–120 characters" },
+      { status: 400 },
+    );
+  }
 
-  const building = await prisma.building.create({
-    data: {
-      tenant_id: gate.session.user.tenantId,
-      name: parsed.data.name.trim(),
-      address: parsed.data.address?.trim() || null,
-    },
-  });
-  await writeAudit(gate.session.user.tenantId, gate.session.user.id, `building.create:${building.name}`);
-  return NextResponse.json(building);
+  try {
+    const building = await prisma.building.create({
+      data: {
+        tenant_id: gate.session.user.tenantId,
+        name: parsed.data.name.trim(),
+        address: parsed.data.address?.trim() || null,
+      },
+    });
+    await writeAudit(gate.session.user.tenantId, gate.session.user.id, `building.create:${building.name}`);
+    return NextResponse.json(building);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Database error";
+    if (message.includes("building") || message.includes("does not exist") || message.includes("P2021")) {
+      return NextResponse.json(
+        { error: "Table missing — run: prisma migrate deploy (0014_floor_plans)" },
+        { status: 503 },
+      );
+    }
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
