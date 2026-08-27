@@ -47,5 +47,16 @@ export async function POST(req: Request) {
     }),
   ]);
 
+  const firing = await prisma.alert.findMany({
+    where: { device_id: agent.device_id, event: "device_down", status: "firing" },
+    select: { id: true },
+  });
+  if (firing.length) {
+    await prisma.alert.updateMany({
+      where: { device_id: agent.device_id, event: "device_down", status: "firing" },
+      data: { status: "resolved", resolved_at: new Date() },
+    });
+  }
+
   return NextResponse.json({ ok: true });
 }

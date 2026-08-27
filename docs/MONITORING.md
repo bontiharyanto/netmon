@@ -26,7 +26,9 @@ You  →  Inventory (hostname, IP, type, location)
      →  status up|down  ·  alert  ·  SLA  ·  Overview
 ```
 
-NETMON does **not** discover the network by itself. You register devices (form, CSV/Excel, or seed). There is no SNMP walk and no ICMP ping in the current poller.
+NETMON does **not** discover the network by itself. You register devices (form, CSV/Excel, or seed).
+
+Default probe is configurable per device (**TCP ports**, optional **HTTP** synthetic, optional **ICMP**). See [CHECKS.md](CHECKS.md). Legacy default remains TCP **:80** when checks are unset.
 
 ---
 

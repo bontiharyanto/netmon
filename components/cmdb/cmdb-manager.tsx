@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/status-badge";
 
+import { CMDB_RELATION_TYPES } from "@/lib/device-checks";
+
 type DeviceOpt = { id: string; hostname: string; ip: string };
 type Ci = {
   id: string;
@@ -21,6 +23,13 @@ type Ci = {
   device: { hostname: string; ip: string; status: string } | null;
   last_synced_at?: string | Date | null;
   last_sync_error?: string | null;
+};
+
+type Relation = {
+  id: string;
+  relation_type: string;
+  from_ci: { id: string; name: string; ci_type: string };
+  to_ci: { id: string; name: string; ci_type: string };
 };
 
 type FormState = {
@@ -63,13 +72,22 @@ function fromItem(item: Ci): FormState {
 export function CmdbManager({ canWrite }: { canWrite: boolean }) {
   const [items, setItems] = useState<Ci[]>([]);
   const [devices, setDevices] = useState<DeviceOpt[]>([]);
+  const [relations, setRelations] = useState<Relation[]>([]);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [fromCi, setFromCi] = useState("");
+  const [toCi, setToCi] = useState("");
+  const [relType, setRelType] = useState<string>("runs_on");
 
   async function load() {
-    const [ciRes, deviceRes] = await Promise.all([fetch("/api/cmdb"), fetch("/api/devices")]);
+    const [ciRes, deviceRes, relRes] = await Promise.all([
+      fetch("/api/cmdb"),
+      fetch("/api/devices"),
+      fetch("/api/cmdb/relations"),
+    ]);
     if (ciRes.ok) setItems(await ciRes.json());
     if (deviceRes.ok) setDevices(await deviceRes.json());
+    if (relRes.ok) setRelations(await relRes.json());
   }
 
   useEffect(() => {
@@ -121,6 +139,35 @@ export function CmdbManager({ canWrite }: { canWrite: boolean }) {
     load();
   }
 
+  async function addRelation(event: React.FormEvent) {
+    event.preventDefault();
+    if (!fromCi || !toCi) return;
+    const res = await fetch("/api/cmdb/relations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ from_ci_id: fromCi, to_ci_id: toCi, relation_type: relType }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      toast.error(body?.error ?? "Unable to add relation");
+      return;
+    }
+    toast.success("Relation added");
+    setFromCi("");
+    setToCi("");
+    load();
+  }
+
+  async function removeRelation(id: string) {
+    const res = await fetch(`/api/cmdb/relations/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      toast.error("Unable to remove relation");
+      return;
+    }
+    toast.success("Relation removed");
+    load();
+  }
+
   return (
     <div className="space-y-6">
       {canWrite && (
@@ -143,6 +190,10 @@ export function CmdbManager({ canWrite }: { canWrite: boolean }) {
                 onChange={(event) => setForm((f) => ({ ...f, ci_type: event.target.value }))}
               >
                 <option value="hardware">hardware</option>
+                <option value="server">server</option>
+                <option value="application">application</option>
+                <option value="database">database</option>
+                <option value="service">service</option>
                 <option value="circuit">circuit</option>
                 <option value="software">software</option>
                 <option value="license">license</option>
@@ -295,6 +346,68 @@ export function CmdbManager({ canWrite }: { canWrite: boolean }) {
               )}
             </tbody>
           </table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>CI relations</CardTitle>
+          <CardDescription>
+            Link Application → Server → Database (e.g. app <span className="font-mono">runs_on</span> server, app{" "}
+            <span className="font-mono">backed_by</span> database).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {canWrite && (
+            <form onSubmit={addRelation} className="grid gap-3 md:grid-cols-4">
+              <select className={selectClass} value={fromCi} onChange={(e) => setFromCi(e.target.value)} required>
+                <option value="">From CI…</option>
+                {items.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} ({item.ci_type})
+                  </option>
+                ))}
+              </select>
+              <select className={selectClass} value={relType} onChange={(e) => setRelType(e.target.value)}>
+                {CMDB_RELATION_TYPES.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+              <select className={selectClass} value={toCi} onChange={(e) => setToCi(e.target.value)} required>
+                <option value="">To CI…</option>
+                {items.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} ({item.ci_type})
+                  </option>
+                ))}
+              </select>
+              <Button type="submit">Add relation</Button>
+            </form>
+          )}
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {relations.map((row) => (
+              <li key={row.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                <p>
+                  <span className="font-medium">{row.from_ci.name}</span>
+                  <span className="mx-2 font-mono text-xs text-primary">{row.relation_type}</span>
+                  <span className="font-medium">{row.to_ci.name}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    ({row.from_ci.ci_type} → {row.to_ci.ci_type})
+                  </span>
+                </p>
+                {canWrite && (
+                  <Button type="button" size="sm" variant="ghost" onClick={() => void removeRelation(row.id)}>
+                    Remove
+                  </Button>
+                )}
+              </li>
+            ))}
+            {relations.length === 0 && (
+              <li className="px-4 py-6 text-sm text-muted-foreground">No relations yet.</li>
+            )}
+          </ul>
         </CardContent>
       </Card>
     </div>

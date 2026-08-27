@@ -21,6 +21,7 @@ Start here, then open the guide that matches the job.
 | [Database](DATABASE.md) | Engineer | Indexes, poller scan, metrics growth |
 | [Ticketing](TICKETING.md) | Admin / NOC | Helpdesk, Jira, **NovaCRM** |
 | [CMDB](CMDB.md) | Admin / operator | CIs in NETMON; optional push to NovaCRM |
+| [Checks & relations](CHECKS.md) | Admin / operator | Multi TCP/HTTP probes; CMDB App→Server→DB |
 | [Floor plans](FLOORS.md) | Admin / operator | Building denah + device pins |
 | [Channels](CHANNELS.md) | Admin | Email, Slack, WhatsApp, inbound replies |
 | [AI](AI.md) | Admin | Rules vs local LLM vs cloud |

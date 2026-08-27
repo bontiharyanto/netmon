@@ -41,6 +41,7 @@ model tenant {
   buildings          building[]
   floors             floor[]
   floor_placements   floor_placement[]
+  cmdb_relations     cmdb_relation[]
 }
 
 model user {
@@ -72,6 +73,8 @@ model device {
   vendor        String?
   location      String?
   city          String?
+  /// Probe config: { tcp: number[], http: [{ url, expectStatus? }], icmp?: boolean }
+  checks        Json          @default("{\"tcp\":[80]}")
   last_seen     DateTime?
   created_at    DateTime      @default(now())
   tenant        tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
@@ -201,8 +204,27 @@ model cmdb_ci {
   last_sync_error   String?
   tenant            tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   device            device?   @relation(fields: [device_id], references: [id], onDelete: SetNull)
+  relations_from    cmdb_relation[] @relation("cmdb_from")
+  relations_to      cmdb_relation[] @relation("cmdb_to")
 
   @@index([tenant_id])
+}
+
+model cmdb_relation {
+  id            String  @id @default(cuid())
+  tenant_id     String
+  from_ci_id    String
+  to_ci_id      String
+  relation_type String
+  created_at    DateTime @default(now())
+  tenant        tenant  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  from_ci       cmdb_ci @relation("cmdb_from", fields: [from_ci_id], references: [id], onDelete: Cascade)
+  to_ci         cmdb_ci @relation("cmdb_to", fields: [to_ci_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, from_ci_id, to_ci_id, relation_type])
+  @@index([tenant_id])
+  @@index([from_ci_id])
+  @@index([to_ci_id])
 }
 
 model notify_channel {

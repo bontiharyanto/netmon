@@ -4,6 +4,20 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { writeAudit } from "@/lib/audit";
 import { normalizeCityInput, resolveDeviceCity } from "@/lib/geo/indonesia-cities";
+import { defaultChecksForType, parseDeviceChecks } from "@/lib/device-checks";
+
+const httpCheckSchema = z.object({
+  url: z.string().url(),
+  expectStatus: z.number().int().min(100).max(599).optional(),
+});
+
+const checksSchema = z
+  .object({
+    tcp: z.array(z.number().int().min(1).max(65535)).max(16).optional(),
+    http: z.array(httpCheckSchema).max(8).optional(),
+    icmp: z.boolean().optional(),
+  })
+  .optional();
 
 const schema = z.object({
   hostname: z.string().min(1),
@@ -11,6 +25,7 @@ const schema = z.object({
   type: z.string().min(1),
   location: z.string().optional(),
   city: z.string().max(80).optional(),
+  checks: checksSchema,
 });
 
 export async function GET() {
@@ -42,6 +57,10 @@ export async function POST(req: Request) {
     resolveDeviceCity({ city: parsed.data.city, location: parsed.data.location })?.slug ??
     null;
 
+  const checks = parsed.data.checks
+    ? parseDeviceChecks(parsed.data.checks, parsed.data.type)
+    : defaultChecksForType(parsed.data.type);
+
   const device = await prisma.device.create({
     data: {
       hostname: parsed.data.hostname,
@@ -49,6 +68,7 @@ export async function POST(req: Request) {
       type: parsed.data.type,
       location: parsed.data.location || null,
       city,
+      checks,
       tenant_id: gate.session.user.tenantId,
     },
   });

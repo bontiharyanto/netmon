@@ -23,7 +23,9 @@ Login errors: wrong password vs `OTP_REQUIRED` vs `DATABASE_UNAVAILABLE` (Postgr
 | GET | `/api/alerts` | alert.read |
 | POST | `/api/alerts` | alert.write |
 | GET | `/api/dashboard/overview` | session |
-| GET/POST | `/api/cmdb` | cmdb |
+| GET/PATCH/DELETE | `/api/cmdb/{id}` | cmdb.write |
+| GET/POST | `/api/cmdb/relations` | cmdb · App/Server/DB graph |
+| DELETE | `/api/cmdb/relations/{id}` | cmdb.write |
 | GET/POST | `/api/floors/buildings` | assets · buildings for floor plans |
 | POST | `/api/floors` | assets.write · create floor |
 | GET/PATCH/DELETE | `/api/floors/{id}` | assets · floor + placements |
