@@ -6,7 +6,6 @@ import { resolveDeviceCity } from "@/lib/geo/indonesia-cities";
 import {
   REPORT_ROW_CAP,
   REPORT_TEMPLATES,
-  parseReportTemplate,
   templateLabel,
   type ReportFilters,
   type ReportMeta,
@@ -243,10 +242,28 @@ export async function buildReport(
       avg_sla: `${avgSla.toFixed(2)}%`,
     },
     devices: includeDevices
-      ? scopedDevices.map(({ _slaNum: _drop, ...row }) => row)
+      ? scopedDevices.map(({ hostname, ip, type, city, location, status, sla, last_seen, cpu, ram, disk }) => ({
+          hostname,
+          ip,
+          type,
+          city,
+          location,
+          status,
+          sla,
+          last_seen,
+          cpu,
+          ram,
+          disk,
+        }))
       : [],
     alerts: includeAlerts
-      ? alertRows.map(({ city: _c, ...row }) => row)
+      ? alertRows.map(({ created_at, hostname, event, severity, status }) => ({
+          created_at,
+          hostname,
+          event,
+          severity,
+          status,
+        }))
       : [],
     tickets: includeTickets ? ticketRows : [],
     truncated: {
