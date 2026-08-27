@@ -114,6 +114,26 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
     [buildings, buildingId],
   );
 
+  useEffect(() => {
+    if (!currentBuilding) {
+      setBuildingName("");
+      setBuildingAddress("");
+      return;
+    }
+    setBuildingName(currentBuilding.name);
+    setBuildingAddress(currentBuilding.address ?? "");
+  }, [currentBuilding]);
+
+  useEffect(() => {
+    if (!floor) {
+      setFloorName("");
+      setFloorLevel("0");
+      return;
+    }
+    setFloorName(floor.name);
+    setFloorLevel(String(floor.level));
+  }, [floor]);
+
   const placedIds = useMemo(() => new Set(placements.map((p) => p.device.id)), [placements]);
   const availableDevices = devices.filter((d) => !placedIds.has(d.id));
 
@@ -143,12 +163,44 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
       return;
     }
     const created = (await res.json()) as Building;
-    setBuildingName("");
-    setBuildingAddress("");
     toast.success("Building created");
     await loadBuildings();
     setBuildingId(created.id);
     setFloorId("");
+  }
+
+  async function saveBuilding() {
+    if (!buildingId) return;
+    if (buildingName.trim().length < 2) {
+      toast.error("Building name must be at least 2 characters");
+      return;
+    }
+    const res = await fetch(`/api/floors/buildings/${buildingId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: buildingName.trim(), address: buildingAddress.trim() || null }),
+    });
+    if (!res.ok) {
+      toast.error("Could not update building");
+      return;
+    }
+    toast.success("Building updated");
+    await loadBuildings();
+  }
+
+  async function deleteBuilding() {
+    if (!buildingId || !currentBuilding) return;
+    if (!confirm(`Delete building “${currentBuilding.name}” and all its floors/pins?`)) return;
+    const res = await fetch(`/api/floors/buildings/${buildingId}`, { method: "DELETE" });
+    if (!res.ok) {
+      toast.error("Could not delete building");
+      return;
+    }
+    toast.success("Building deleted");
+    setBuildingId("");
+    setFloorId("");
+    setFloor(null);
+    await loadBuildings();
   }
 
   async function createFloor() {
@@ -167,11 +219,28 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
       return;
     }
     const created = (await res.json()) as { id: string };
-    setFloorName("");
-    setFloorLevel("0");
     toast.success("Floor created");
     await loadBuildings();
     setFloorId(created.id);
+  }
+
+  async function saveFloor() {
+    if (!floorId || !floorName.trim()) return;
+    const res = await fetch(`/api/floors/${floorId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: floorName.trim(),
+        level: Number.parseInt(floorLevel, 10) || 0,
+      }),
+    });
+    if (!res.ok) {
+      toast.error("Could not update floor");
+      return;
+    }
+    toast.success("Floor updated");
+    await loadFloor(floorId);
+    await loadBuildings();
   }
 
   async function deleteFloor() {
@@ -298,7 +367,7 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
             {canWrite && (
               <div className="space-y-3 border-t border-border pt-3">
                 <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                  New building
+                  {buildingId ? "Edit building" : "New building"}
                 </p>
                 <Input placeholder="Building name" value={buildingName} onChange={(e) => setBuildingName(e.target.value)} />
                 <Input
@@ -306,12 +375,39 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
                   value={buildingAddress}
                   onChange={(e) => setBuildingAddress(e.target.value)}
                 />
-                <Button type="button" size="sm" className="w-full" onClick={() => void createBuilding()}>
-                  Add building
-                </Button>
+                {buildingId ? (
+                  <div className="flex gap-2">
+                    <Button type="button" size="sm" className="flex-1" onClick={() => void saveBuilding()}>
+                      Save building
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => void deleteBuilding()}>
+                      Delete
+                    </Button>
+                  </div>
+                ) : (
+                  <Button type="button" size="sm" className="w-full" onClick={() => void createBuilding()}>
+                    Add building
+                  </Button>
+                )}
+                {buildingId && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => {
+                      setBuildingId("");
+                      setFloorId("");
+                      setBuildingName("");
+                      setBuildingAddress("");
+                    }}
+                  >
+                    Clear selection · new building
+                  </Button>
+                )}
 
                 <p className="pt-2 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                  New floor
+                  {floorId ? "Edit floor" : "New floor"}
                 </p>
                 <Input
                   placeholder="Floor name"
@@ -326,16 +422,43 @@ export function FloorPlansManager({ canWrite }: { canWrite: boolean }) {
                   onChange={(e) => setFloorLevel(e.target.value)}
                   disabled={!buildingId}
                 />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="w-full"
-                  disabled={!buildingId}
-                  onClick={() => void createFloor()}
-                >
-                  Add floor
-                </Button>
+                {floorId ? (
+                  <div className="flex gap-2">
+                    <Button type="button" size="sm" variant="outline" className="flex-1" onClick={() => void saveFloor()}>
+                      Save floor
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => void deleteFloor()}>
+                      Delete
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    disabled={!buildingId}
+                    onClick={() => void createFloor()}
+                  >
+                    Add floor
+                  </Button>
+                )}
+                {floorId && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="w-full"
+                    disabled={!buildingId}
+                    onClick={() => {
+                      setFloorId("");
+                      setFloorName("");
+                      setFloorLevel("0");
+                    }}
+                  >
+                    Clear floor · add another
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
